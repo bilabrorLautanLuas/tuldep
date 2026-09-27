@@ -1,0 +1,18 @@
+{
+  "name": "@tuldep/server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts"
+  },
+  "dependencies": {
+    "@tuldep/shared": "workspace:*",
+    "hono": "^4.6.0",
+    "mongodb": "^7.6.0",
+    "postgres": "^3.4.9",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
