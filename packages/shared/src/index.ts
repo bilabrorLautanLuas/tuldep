@@ -137,3 +137,75 @@ export const AvailableScriptsResponseSchema = z.object({
   message: z.string().optional(),
 });
 export type AvailableScriptsResponse = z.infer<typeof AvailableScriptsResponseSchema>;
+
+// ---- Config export / import (DB connections + scripts, shareable JSON) ----
+export const CONFIG_EXPORT_VERSION = "1.0";
+
+export const ExportConnectionSchema = z.object({
+  name: z.string(),
+  kind: DbConnectionKindSchema,
+  connectionString: z.string(),
+});
+export type ExportConnection = z.infer<typeof ExportConnectionSchema>;
+
+export const ExportScriptSchema = z.object({
+  name: z.string(),
+  connectionName: z.string(),
+  kind: DbConnectionKindSchema,
+  payload: z.string(),
+});
+export type ExportScript = z.infer<typeof ExportScriptSchema>;
+
+export const TuldepConfigExportSchema = z.object({
+  version: z.string(),
+  exportedAt: z.string(),
+  connections: z.array(ExportConnectionSchema),
+  scripts: z.array(ExportScriptSchema),
+});
+export type TuldepConfigExport = z.infer<typeof TuldepConfigExportSchema>;
+
+export const ImportItemTypeSchema = z.enum(["connection", "script"]);
+export type ImportItemType = z.infer<typeof ImportItemTypeSchema>;
+
+export const ImportPreviewItemSchema = z.object({
+  type: ImportItemTypeSchema,
+  name: z.string(),
+  status: z.enum(["new", "conflict"]),
+  detail: z.string().optional(),
+});
+export type ImportPreviewItem = z.infer<typeof ImportPreviewItemSchema>;
+
+// `type` is included alongside `name` (beyond the minimal shape) so a connection and
+// a script that happen to share the same name resolve unambiguously — they're
+// different tables/namespaces locally.
+export const ImportResolutionSchema = z.object({
+  type: ImportItemTypeSchema,
+  name: z.string(),
+  action: z.enum(["skip", "overwrite", "rename"]),
+  newName: z.string().optional(),
+});
+export type ImportResolution = z.infer<typeof ImportResolutionSchema>;
+
+export const ExportConfigRequestSchema = z.object({
+  connectionIds: z.array(z.string()).optional(),
+  scriptIds: z.array(z.string()).optional(),
+});
+export type ExportConfigRequest = z.infer<typeof ExportConfigRequestSchema>;
+
+export const ImportPreviewRequestSchema = z.object({
+  config: TuldepConfigExportSchema,
+});
+export type ImportPreviewRequest = z.infer<typeof ImportPreviewRequestSchema>;
+
+export const ImportApplyRequestSchema = z.object({
+  config: TuldepConfigExportSchema,
+  resolutions: z.array(ImportResolutionSchema),
+});
+export type ImportApplyRequest = z.infer<typeof ImportApplyRequestSchema>;
+
+export const ImportApplySummarySchema = z.object({
+  imported: z.number(),
+  skipped: z.number(),
+  warnings: z.array(z.string()),
+});
+export type ImportApplySummary = z.infer<typeof ImportApplySummarySchema>;

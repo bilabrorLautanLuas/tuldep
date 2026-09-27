@@ -5,6 +5,7 @@ import { projectsRouter } from "./routes/projects";
 import { dbConnectionsRouter } from "./routes/dbConnections";
 import { dbScriptsRouter } from "./routes/dbScripts";
 import { scanRouter } from "./routes/scan";
+import { configRouter } from "./routes/config";
 import * as logStore from "./logStore";
 
 const app = new Hono();
@@ -14,6 +15,7 @@ app.use(
   cors({
     origin: "http://localhost:5273",
     allowMethods: ["GET", "POST", "PUT", "DELETE"],
+    exposeHeaders: ["Content-Disposition"],
   }),
 );
 
@@ -21,6 +23,7 @@ app.route("/api/projects", projectsRouter);
 app.route("/api/db-connections", dbConnectionsRouter);
 app.route("/api/db-scripts", dbScriptsRouter);
 app.route("/api", scanRouter);
+app.route("/api", configRouter);
 
 app.get(
   "/ws/logs/:projectId",

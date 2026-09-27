@@ -6,11 +6,15 @@ import type {
   DbConnection,
   DbScript,
   DbScriptRunResult,
+  ImportApplySummary,
+  ImportPreviewItem,
+  ImportResolution,
   Project,
   ProjectStatus,
   ProjectSuggestion,
   ProjectWithStatus,
   ScanSettings,
+  TuldepConfigExport,
   UpdateDbConnectionInput,
   UpdateDbScriptInput,
   UpdateProjectInput,
@@ -188,5 +192,57 @@ export async function runDbScript(id: string, confirmed?: boolean): Promise<DbSc
 
 export async function getDbScriptHistory(id: string, limit = 10): Promise<DbScriptRunResult[]> {
   const res = await fetch(`${BASE_URL}/db-scripts/${id}/history?limit=${limit}`);
+  return res.json();
+}
+
+// ---- Config export / import ----
+
+export async function exportConfig(connectionIds?: string[], scriptIds?: string[]): Promise<void> {
+  const res = await fetch(`${BASE_URL}/config/export`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ connectionIds, scriptIds }),
+  });
+  const blob = await res.blob();
+  const disposition = res.headers.get("Content-Disposition") ?? "";
+  const match = disposition.match(/filename="([^"]+)"/);
+  const filename = match?.[1] ?? "tuldep-config.json";
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export async function previewImportConfig(config: TuldepConfigExport): Promise<ImportPreviewItem[]> {
+  const res = await fetch(`${BASE_URL}/config/import/preview`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ config }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `Preview failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function applyImportConfig(
+  config: TuldepConfigExport,
+  resolutions: ImportResolution[],
+): Promise<ImportApplySummary> {
+  const res = await fetch(`${BASE_URL}/config/import/apply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ config, resolutions }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `Import failed (${res.status})`);
+  }
   return res.json();
 }

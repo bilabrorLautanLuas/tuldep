@@ -6,6 +6,8 @@ import { DbConnectionsList } from "./DbConnectionsList";
 import { ScriptForm } from "./ScriptForm";
 import { DbScriptsList } from "./DbScriptsList";
 import { Modal } from "../Modal";
+import { ExportConfigModal } from "./ExportConfigModal";
+import { ImportConfigModal } from "./ImportConfigModal";
 
 export function DbScriptsPage() {
   const [connections, setConnections] = useState<DbConnection[]>([]);
@@ -16,6 +18,8 @@ export function DbScriptsPage() {
   const [editingConnectionId, setEditingConnectionId] = useState<string | null>(null);
   const [editingScriptId, setEditingScriptId] = useState<string | null>(null);
   const [runningIds, setRunningIds] = useState<Set<string>>(new Set());
+  const [exportOpen, setExportOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const refreshHistoryFor = useCallback(async (scriptList: DbScript[]) => {
     const entries = await Promise.all(
@@ -71,6 +75,11 @@ export function DbScriptsPage() {
 
   return (
     <div className="dashboard">
+      <div className="dashboard-toolbar">
+        <button onClick={() => setExportOpen(true)}>Export Config</button>
+        <button onClick={() => setImportOpen(true)}>Import Config</button>
+      </div>
+
       <ConnectionForm
         mode="create"
         onSubmit={async (input) => {
@@ -135,6 +144,12 @@ export function DbScriptsPage() {
           />
         </Modal>
       )}
+
+      {exportOpen && (
+        <ExportConfigModal connections={connections} scripts={scripts} onClose={() => setExportOpen(false)} />
+      )}
+
+      {importOpen && <ImportConfigModal onClose={() => setImportOpen(false)} onImported={refresh} />}
     </div>
   );
 }
