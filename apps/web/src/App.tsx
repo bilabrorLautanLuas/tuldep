@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Dashboard } from "./components/Dashboard";
 import { DbScriptsPage } from "./components/db/DbScriptsPage";
+import { MyIpPage } from "./components/MyIpPage";
+
+type View = "projects" | "db" | "my-ip";
 
 export default function App() {
-  const [view, setView] = useState<"projects" | "db">("projects");
+  const [view, setView] = useState<View>("projects");
 
   return (
     <div className="app">
@@ -16,9 +19,14 @@ export default function App() {
           <button className={view === "db" ? "active" : ""} onClick={() => setView("db")}>
             DB Scripts
           </button>
+          <button className={view === "my-ip" ? "active" : ""} onClick={() => setView("my-ip")}>
+            🌐 My IP
+          </button>
         </nav>
       </header>
-      {view === "projects" ? <Dashboard /> : <DbScriptsPage />}
+      {view === "projects" && <Dashboard />}
+      {view === "db" && <DbScriptsPage />}
+      {view === "my-ip" && <MyIpPage />}
     </div>
   );
 }

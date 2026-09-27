@@ -11,6 +11,7 @@ import type {
   ImportApplySummary,
   ImportPreviewItem,
   ImportResolution,
+  MyIpInfo,
   Project,
   ProjectStatus,
   ProjectSuggestion,
@@ -262,6 +263,22 @@ export async function applyImportConfig(
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error ?? `Import failed (${res.status})`);
+  }
+  return res.json();
+}
+
+// ---- My IP (proxied through the server to avoid CORS and share its 60s cache) ----
+
+export async function getMyIp(): Promise<MyIpInfo> {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}/my-ip`);
+  } catch {
+    throw new Error("Could not reach the Tuldep server.");
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `My IP lookup failed (${res.status})`);
   }
   return res.json();
 }

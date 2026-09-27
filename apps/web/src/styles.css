@@ -893,3 +893,39 @@ h3 {
   background: var(--loading-bg);
   color: #f5c56a;
 }
+
+/* =========================================================================
+   My IP — reuses .project-card / .project-card-actions / .script-run-result;
+   only layout for the IP row and the field list lives here
+   ========================================================================= */
+
+.my-ip-card {
+  max-width: 480px;
+}
+
+.my-ip-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.my-ip-address {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.my-ip-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.my-ip-fields dd {
+  margin: 2px 0 0;
+  font-size: var(--text-base);
+}

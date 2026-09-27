@@ -243,3 +243,17 @@ export const ImportApplySummarySchema = z.object({
   warnings: z.array(z.string()),
 });
 export type ImportApplySummary = z.infer<typeof ImportApplySummarySchema>;
+
+// ---- My IP (read-only proxy of ipinfo.io/json, never persisted) ----
+// Only the fields the UI shows are typed; the server returns the ipinfo.io body as-is.
+export interface MyIpInfo {
+  ip: string;
+  hostname?: string;
+  city?: string;
+  region?: string;
+  country?: string;
+  loc?: string;
+  org?: string;
+  postal?: string;
+  timezone?: string;
+}
