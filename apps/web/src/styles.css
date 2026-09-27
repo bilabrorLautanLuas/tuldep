@@ -10,9 +10,14 @@ body {
 }
 
 .app {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 24px;
+  width: 100%;
+  padding: 24px 32px;
+}
+
+@media (max-width: 768px) {
+  .app {
+    padding: 16px;
+  }
 }
 
 .app-header {
@@ -100,7 +105,7 @@ body {
 
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
 }
 
@@ -187,6 +192,11 @@ body {
   font-weight: 600;
 }
 
+.log-viewer-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .log-viewer-body {
   flex: 1;
   margin: 0;
@@ -263,25 +273,6 @@ body {
 .kind-badge--unknown {
   background: #2a2e37;
   color: #999;
-}
-
-.action-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-}
-
-.action-badge--seed,
-.action-badge--migrate {
-  background: #2a2e37;
-  color: #9fb3c8;
-}
-
-.action-badge--reset,
-.action-badge--custom {
-  background: #4a1f1f;
-  color: #ff8a8a;
 }
 
 .script-run-result {

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { CreateDbScriptSchema, RunDbScriptRequestSchema, isDestructiveAction } from "@tuldep/shared";
+import { CreateDbScriptSchema, RunDbScriptRequestSchema, UpdateDbScriptSchema } from "@tuldep/shared";
 import * as db from "../db";
 import * as runner from "../dbScriptRunner";
 
@@ -10,6 +10,14 @@ dbScriptsRouter.get("/", (c) => c.json(db.getDbScripts()));
 dbScriptsRouter.post("/", async (c) => {
   const body = CreateDbScriptSchema.parse(await c.req.json());
   return c.json(db.createDbScript(body), 201);
+});
+
+dbScriptsRouter.put("/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = UpdateDbScriptSchema.parse(await c.req.json());
+  const updated = db.updateDbScript(id, body);
+  if (!updated) return c.json({ error: "not found" }, 404);
+  return c.json(updated);
 });
 
 dbScriptsRouter.delete("/:id", (c) => {
@@ -25,8 +33,9 @@ dbScriptsRouter.post("/:id/run", async (c) => {
   if (!connection) return c.json({ error: "connection not found" }, 404);
 
   const body = RunDbScriptRequestSchema.parse(await c.req.json().catch(() => ({})));
-  if (isDestructiveAction(script.action) && body.confirmed !== true) {
-    return c.json({ error: "confirmation required for destructive action" }, 400);
+  // No more action tag to tell destructive from safe — always require confirmation.
+  if (body.confirmed !== true) {
+    return c.json({ error: "confirmation required" }, 400);
   }
 
   const result = await runner.runScript(connection, script);

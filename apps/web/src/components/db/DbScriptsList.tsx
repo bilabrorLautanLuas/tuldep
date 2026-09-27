@@ -7,10 +7,19 @@ interface DbScriptsListProps {
   lastResults: Record<string, DbScriptRunResult>;
   history: Record<string, DbScriptRunResult[]>;
   onRun: (id: string, confirmed?: boolean) => void;
+  onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-export function DbScriptsList({ connections, scripts, lastResults, history, onRun, onDelete }: DbScriptsListProps) {
+export function DbScriptsList({
+  connections,
+  scripts,
+  lastResults,
+  history,
+  onRun,
+  onEdit,
+  onDelete,
+}: DbScriptsListProps) {
   if (scripts.length === 0) {
     return <p className="empty-state">No scripts yet — add one above.</p>;
   }
@@ -32,6 +41,7 @@ export function DbScriptsList({ connections, scripts, lastResults, history, onRu
                   lastResult={lastResults[script.id]}
                   history={history[script.id] ?? []}
                   onRun={onRun}
+                  onEdit={onEdit}
                   onDelete={onDelete}
                 />
               ))}

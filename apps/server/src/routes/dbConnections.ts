@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { CreateDbConnectionSchema } from "@tuldep/shared";
+import { CreateDbConnectionSchema, UpdateDbConnectionSchema } from "@tuldep/shared";
 import * as db from "../db";
 import * as pool from "../dbConnectionPool";
 
@@ -10,6 +10,14 @@ dbConnectionsRouter.get("/", (c) => c.json(db.getDbConnections()));
 dbConnectionsRouter.post("/", async (c) => {
   const body = CreateDbConnectionSchema.parse(await c.req.json());
   return c.json(db.createDbConnection(body), 201);
+});
+
+dbConnectionsRouter.put("/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = UpdateDbConnectionSchema.parse(await c.req.json());
+  const updated = db.updateDbConnection(id, body);
+  if (!updated) return c.json({ error: "not found" }, 404);
+  return c.json(updated);
 });
 
 dbConnectionsRouter.delete("/:id", (c) => {

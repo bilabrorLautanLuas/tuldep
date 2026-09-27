@@ -9,6 +9,8 @@ import type {
   DbScriptRunResult,
   Project,
   ScanSettings,
+  UpdateDbConnectionInput,
+  UpdateDbScriptInput,
   UpdateProjectInput,
   UpdateScanSettingsInput,
 } from "@tuldep/shared";
@@ -46,7 +48,6 @@ db.run(`
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     connectionId TEXT NOT NULL REFERENCES db_connections(id) ON DELETE CASCADE,
-    action TEXT NOT NULL CHECK (action IN ('seed', 'reset', 'migrate', 'custom')),
     kind TEXT NOT NULL CHECK (kind IN ('postgres', 'mongodb')),
     payload TEXT NOT NULL,
     createdAt INTEGER NOT NULL
@@ -84,6 +85,16 @@ function ensureColumn(table: string, column: string, ddl: string): void {
 ensureColumn("db_connections", "createdAt", "INTEGER NOT NULL DEFAULT 0");
 ensureColumn("db_scripts", "createdAt", "INTEGER NOT NULL DEFAULT 0");
 ensureColumn("db_scripts", "kind", "TEXT NOT NULL DEFAULT 'postgres'");
+
+function ensureColumnDropped(table: string, column: string): void {
+  const columns = db.query<{ name: string }, []>(`PRAGMA table_info(${table})`).all();
+  if (columns.some((c) => c.name === column)) {
+    db.run(`ALTER TABLE ${table} DROP COLUMN ${column}`);
+  }
+}
+// `action` was removed from the DbScript concept entirely — drop it from any db_scripts
+// table created before this change. No data migration needed: nothing else derives from it.
+ensureColumnDropped("db_scripts", "action");
 
 interface ProjectRow {
   id: string;
@@ -161,6 +172,19 @@ export function deleteDbConnection(id: string): void {
   db.query("DELETE FROM db_connections WHERE id = ?").run(id);
 }
 
+export function updateDbConnection(id: string, patch: UpdateDbConnectionInput): DbConnection | null {
+  const existing = getDbConnection(id);
+  if (!existing) return null;
+  const updated: DbConnection = { ...existing, ...patch };
+  db.query("UPDATE db_connections SET name = ?, kind = ?, connectionString = ? WHERE id = ?").run(
+    updated.name,
+    updated.kind,
+    updated.connectionString,
+    id,
+  );
+  return updated;
+}
+
 // ---- DbScript ----
 
 export function getDbScripts(): DbScript[] {
@@ -174,13 +198,27 @@ export function getDbScript(id: string): DbScript | null {
 export function createDbScript(input: CreateDbScriptInput): DbScript {
   const script: DbScript = { id: crypto.randomUUID(), createdAt: Date.now(), ...input };
   db.query(
-    "INSERT INTO db_scripts (id, name, connectionId, action, kind, payload, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
-  ).run(script.id, script.name, script.connectionId, script.action, script.kind, script.payload, script.createdAt);
+    "INSERT INTO db_scripts (id, name, connectionId, kind, payload, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
+  ).run(script.id, script.name, script.connectionId, script.kind, script.payload, script.createdAt);
   return script;
 }
 
 export function deleteDbScript(id: string): void {
   db.query("DELETE FROM db_scripts WHERE id = ?").run(id);
+}
+
+export function updateDbScript(id: string, patch: UpdateDbScriptInput): DbScript | null {
+  const existing = getDbScript(id);
+  if (!existing) return null;
+  const updated: DbScript = { ...existing, ...patch };
+  db.query("UPDATE db_scripts SET name = ?, connectionId = ?, kind = ?, payload = ? WHERE id = ?").run(
+    updated.name,
+    updated.connectionId,
+    updated.kind,
+    updated.payload,
+    id,
+  );
+  return updated;
 }
 
 // ---- script_runs ----

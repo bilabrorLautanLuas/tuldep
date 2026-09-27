@@ -1,20 +1,21 @@
 import { useState } from "react";
-import type { DbConnection, DbScriptAction } from "@tuldep/shared";
-import * as api from "../../api";
+import type { CreateDbScriptInput, DbConnection, DbScript } from "@tuldep/shared";
 
-interface AddScriptFormProps {
+interface ScriptFormProps {
+  mode: "create" | "edit";
   connections: DbConnection[];
-  onAdded: () => void;
+  initialScript?: DbScript;
+  onSubmit: (input: CreateDbScriptInput) => Promise<void>;
+  onCancel?: () => void;
 }
 
 const POSTGRES_PLACEHOLDER = "TRUNCATE TABLE your_table;";
 const MONGO_PLACEHOLDER = '{"collection": "users", "operation": "deleteMany", "data": {}}';
 
-export function AddScriptForm({ connections, onAdded }: AddScriptFormProps) {
-  const [name, setName] = useState("");
-  const [connectionId, setConnectionId] = useState(connections[0]?.id ?? "");
-  const [action, setAction] = useState<DbScriptAction>("seed");
-  const [payload, setPayload] = useState("");
+export function ScriptForm({ mode, connections, initialScript, onSubmit, onCancel }: ScriptFormProps) {
+  const [name, setName] = useState(initialScript?.name ?? "");
+  const [connectionId, setConnectionId] = useState(initialScript?.connectionId ?? connections[0]?.id ?? "");
+  const [payload, setPayload] = useState(initialScript?.payload ?? "");
   const [submitting, setSubmitting] = useState(false);
 
   const selectedConnection = connections.find((c) => c.id === connectionId) ?? connections[0];
@@ -24,16 +25,16 @@ export function AddScriptForm({ connections, onAdded }: AddScriptFormProps) {
     if (!name || !selectedConnection || !payload) return;
     setSubmitting(true);
     try {
-      await api.createDbScript({
+      await onSubmit({
         name,
         connectionId: selectedConnection.id,
-        action,
         kind: selectedConnection.kind,
         payload,
       });
-      setName("");
-      setPayload("");
-      onAdded();
+      if (mode === "create") {
+        setName("");
+        setPayload("");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -45,7 +46,7 @@ export function AddScriptForm({ connections, onAdded }: AddScriptFormProps) {
 
   return (
     <form className="add-project-form" onSubmit={handleSubmit}>
-      <h2>Add Script</h2>
+      <h2>{mode === "create" ? "Add Script" : "Edit Script"}</h2>
       <input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
       <select value={connectionId || selectedConnection?.id} onChange={(e) => setConnectionId(e.target.value)}>
         {connections.map((c) => (
@@ -54,12 +55,6 @@ export function AddScriptForm({ connections, onAdded }: AddScriptFormProps) {
           </option>
         ))}
       </select>
-      <select value={action} onChange={(e) => setAction(e.target.value as DbScriptAction)}>
-        <option value="seed">seed</option>
-        <option value="reset">reset</option>
-        <option value="migrate">migrate</option>
-        <option value="custom">custom</option>
-      </select>
       <textarea
         placeholder={selectedConnection?.kind === "mongodb" ? MONGO_PLACEHOLDER : POSTGRES_PLACEHOLDER}
         value={payload}
@@ -67,9 +62,16 @@ export function AddScriptForm({ connections, onAdded }: AddScriptFormProps) {
         rows={4}
         className="script-payload-input"
       />
-      <button type="submit" disabled={submitting}>
-        Add Script
-      </button>
+      <div className="form-actions">
+        <button type="submit" disabled={submitting}>
+          {mode === "create" ? "Add Script" : "Save Changes"}
+        </button>
+        {mode === "edit" && onCancel && (
+          <button type="button" onClick={onCancel}>
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   );
 }

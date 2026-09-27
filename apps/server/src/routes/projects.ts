@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { CreateProjectSchema, ImportProjectsRequestSchema, UpdateProjectSchema } from "@tuldep/shared";
 import * as db from "../db";
 import * as pm from "../processManager";
+import * as logStore from "../logStore";
 
 export const projectsRouter = new Hono();
 
@@ -57,4 +58,9 @@ projectsRouter.post("/:id/stop", async (c) => {
 
 projectsRouter.get("/:id/status", (c) => {
   return c.json({ status: pm.getStatus(c.req.param("id")) });
+});
+
+projectsRouter.delete("/:id/logs", async (c) => {
+  await logStore.clearProjectLog(c.req.param("id"));
+  return c.json({ success: true });
 });

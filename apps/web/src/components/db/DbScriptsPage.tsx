@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import type { DbConnection, DbScript, DbScriptRunResult } from "@tuldep/shared";
 import * as api from "../../api";
-import { AddConnectionForm } from "./AddConnectionForm";
+import { ConnectionForm } from "./ConnectionForm";
 import { DbConnectionsList } from "./DbConnectionsList";
-import { AddScriptForm } from "./AddScriptForm";
+import { ScriptForm } from "./ScriptForm";
 import { DbScriptsList } from "./DbScriptsList";
+import { Modal } from "../Modal";
 
 export function DbScriptsPage() {
   const [connections, setConnections] = useState<DbConnection[]>([]);
@@ -12,6 +13,8 @@ export function DbScriptsPage() {
   const [testResults, setTestResults] = useState<Record<string, { ok: boolean; error?: string }>>({});
   const [lastResults, setLastResults] = useState<Record<string, DbScriptRunResult>>({});
   const [history, setHistory] = useState<Record<string, DbScriptRunResult[]>>({});
+  const [editingConnectionId, setEditingConnectionId] = useState<string | null>(null);
+  const [editingScriptId, setEditingScriptId] = useState<string | null>(null);
 
   const refreshHistoryFor = useCallback(async (scriptList: DbScript[]) => {
     const entries = await Promise.all(
@@ -53,25 +56,74 @@ export function DbScriptsPage() {
     refresh();
   }
 
+  const editingConnection = connections.find((c) => c.id === editingConnectionId) ?? null;
+  const editingScript = scripts.find((s) => s.id === editingScriptId) ?? null;
+
   return (
     <div className="dashboard">
-      <AddConnectionForm onAdded={refresh} />
+      <ConnectionForm
+        mode="create"
+        onSubmit={async (input) => {
+          await api.createDbConnection(input);
+          refresh();
+        }}
+      />
       <DbConnectionsList
         connections={connections}
         testResults={testResults}
         onTest={handleTestConnection}
+        onEdit={setEditingConnectionId}
         onDelete={handleDeleteConnection}
       />
 
-      <AddScriptForm connections={connections} onAdded={refresh} />
+      <ScriptForm
+        mode="create"
+        connections={connections}
+        onSubmit={async (input) => {
+          await api.createDbScript(input);
+          refresh();
+        }}
+      />
       <DbScriptsList
         connections={connections}
         scripts={scripts}
         lastResults={lastResults}
         history={history}
         onRun={handleRunScript}
+        onEdit={setEditingScriptId}
         onDelete={handleDeleteScript}
       />
+
+      {editingConnection && (
+        <Modal title="Edit Connection" onClose={() => setEditingConnectionId(null)}>
+          <ConnectionForm
+            mode="edit"
+            initialConnection={editingConnection}
+            onSubmit={async (input) => {
+              await api.updateDbConnection(editingConnection.id, input);
+              setEditingConnectionId(null);
+              refresh();
+            }}
+            onCancel={() => setEditingConnectionId(null)}
+          />
+        </Modal>
+      )}
+
+      {editingScript && (
+        <Modal title="Edit Script" onClose={() => setEditingScriptId(null)}>
+          <ScriptForm
+            mode="edit"
+            connections={connections}
+            initialScript={editingScript}
+            onSubmit={async (input) => {
+              await api.updateDbScript(editingScript.id, input);
+              setEditingScriptId(null);
+              refresh();
+            }}
+            onCancel={() => setEditingScriptId(null)}
+          />
+        </Modal>
+      )}
     </div>
   );
 }

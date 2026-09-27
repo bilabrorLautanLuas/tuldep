@@ -10,6 +10,8 @@ import type {
   ProjectSuggestion,
   ProjectWithStatus,
   ScanSettings,
+  UpdateDbConnectionInput,
+  UpdateDbScriptInput,
   UpdateProjectInput,
 } from "@tuldep/shared";
 
@@ -40,6 +42,11 @@ export async function startProject(id: string): Promise<{ status: ProjectStatus 
 
 export async function stopProject(id: string): Promise<{ status: ProjectStatus }> {
   const res = await fetch(`${BASE_URL}/projects/${id}/stop`, { method: "POST" });
+  return res.json();
+}
+
+export async function clearProjectLog(id: string): Promise<{ success: boolean }> {
+  const res = await fetch(`${BASE_URL}/projects/${id}/logs`, { method: "DELETE" });
   return res.json();
 }
 
@@ -109,6 +116,15 @@ export async function createDbConnection(input: CreateDbConnectionInput): Promis
   return res.json();
 }
 
+export async function updateDbConnection(id: string, input: UpdateDbConnectionInput): Promise<DbConnection> {
+  const res = await fetch(`${BASE_URL}/db-connections/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  return res.json();
+}
+
 export async function deleteDbConnection(id: string): Promise<void> {
   await fetch(`${BASE_URL}/db-connections/${id}`, { method: "DELETE" });
 }
@@ -128,6 +144,15 @@ export async function listDbScripts(): Promise<DbScript[]> {
 export async function createDbScript(input: CreateDbScriptInput): Promise<DbScript> {
   const res = await fetch(`${BASE_URL}/db-scripts`, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  return res.json();
+}
+
+export async function updateDbScript(id: string, input: UpdateDbScriptInput): Promise<DbScript> {
+  const res = await fetch(`${BASE_URL}/db-scripts/${id}`, {
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });

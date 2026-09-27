@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type LogMessage = { type: "initial"; lines: string[] } | { type: "line"; line: string };
 
-export function useProjectLogs(projectId: string | null): string[] {
+export function useProjectLogs(projectId: string | null): { lines: string[]; clear: () => void } {
   const [lines, setLines] = useState<string[]>([]);
 
   useEffect(() => {
@@ -20,5 +20,7 @@ export function useProjectLogs(projectId: string | null): string[] {
     return () => ws.close();
   }, [projectId]);
 
-  return lines;
+  const clear = useCallback(() => setLines([]), []);
+
+  return { lines, clear };
 }

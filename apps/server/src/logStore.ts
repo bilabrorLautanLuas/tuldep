@@ -39,6 +39,11 @@ export function appendLine(projectId: string, line: string): void {
   getEmitter(projectId).emit("line", line);
 }
 
+export async function clearProjectLog(projectId: string): Promise<void> {
+  ringBuffers.set(projectId, []);
+  await Bun.write(logPathFor(projectId), "");
+}
+
 export function subscribe(projectId: string, onLine: (line: string) => void): () => void {
   const emitter = getEmitter(projectId);
   emitter.on("line", onLine);

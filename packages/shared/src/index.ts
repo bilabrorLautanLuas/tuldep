@@ -42,20 +42,14 @@ export type DbConnection = z.infer<typeof DbConnectionSchema>;
 export const CreateDbConnectionSchema = DbConnectionSchema.omit({ id: true, createdAt: true });
 export type CreateDbConnectionInput = z.infer<typeof CreateDbConnectionSchema>;
 
+export const UpdateDbConnectionSchema = CreateDbConnectionSchema.partial();
+export type UpdateDbConnectionInput = z.infer<typeof UpdateDbConnectionSchema>;
+
 // ---- DbScript ----
-export const DbScriptActionSchema = z.enum(["seed", "reset", "migrate", "custom"]);
-export type DbScriptAction = z.infer<typeof DbScriptActionSchema>;
-
-export const DESTRUCTIVE_DB_SCRIPT_ACTIONS: readonly DbScriptAction[] = ["reset", "custom"];
-export function isDestructiveAction(action: DbScriptAction): boolean {
-  return (DESTRUCTIVE_DB_SCRIPT_ACTIONS as readonly string[]).includes(action);
-}
-
 export const DbScriptSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
   connectionId: z.string(),
-  action: DbScriptActionSchema,
   kind: DbConnectionKindSchema,
   payload: z.string().min(1),
   createdAt: z.number(),
@@ -64,6 +58,9 @@ export type DbScript = z.infer<typeof DbScriptSchema>;
 
 export const CreateDbScriptSchema = DbScriptSchema.omit({ id: true, createdAt: true });
 export type CreateDbScriptInput = z.infer<typeof CreateDbScriptSchema>;
+
+export const UpdateDbScriptSchema = CreateDbScriptSchema.partial();
+export type UpdateDbScriptInput = z.infer<typeof UpdateDbScriptSchema>;
 
 // ---- Mongo script payload (kind === 'mongodb') ----
 export const MongoScriptOperationSchema = z.enum(["deleteMany", "insertMany", "drop", "updateMany"]);

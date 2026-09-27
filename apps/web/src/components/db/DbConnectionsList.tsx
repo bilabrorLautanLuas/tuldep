@@ -4,10 +4,11 @@ interface DbConnectionsListProps {
   connections: DbConnection[];
   testResults: Record<string, { ok: boolean; error?: string }>;
   onTest: (id: string) => void;
+  onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-export function DbConnectionsList({ connections, testResults, onTest, onDelete }: DbConnectionsListProps) {
+export function DbConnectionsList({ connections, testResults, onTest, onEdit, onDelete }: DbConnectionsListProps) {
   if (connections.length === 0) {
     return <p className="empty-state">No connections yet — add one above.</p>;
   }
@@ -30,6 +31,9 @@ export function DbConnectionsList({ connections, testResults, onTest, onDelete }
             )}
             <div className="project-card-actions">
               <button onClick={() => onTest(connection.id)}>Test Connection</button>
+              <button onClick={() => onEdit(connection.id)} title="Edit connection">
+                ✎ Edit
+              </button>
               <button className="danger" onClick={() => onDelete(connection.id)}>
                 Delete
               </button>

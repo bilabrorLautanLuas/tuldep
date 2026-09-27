@@ -1,4 +1,3 @@
-import { isDestructiveAction } from "@tuldep/shared";
 import type { DbScript, DbScriptRunResult } from "@tuldep/shared";
 
 interface DbScriptRowProps {
@@ -7,32 +6,30 @@ interface DbScriptRowProps {
   lastResult?: DbScriptRunResult;
   history: DbScriptRunResult[];
   onRun: (id: string, confirmed?: boolean) => void;
+  onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-export function DbScriptRow({ script, connectionName, lastResult, history, onRun, onDelete }: DbScriptRowProps) {
+export function DbScriptRow({ script, connectionName, lastResult, history, onRun, onEdit, onDelete }: DbScriptRowProps) {
   function handleRun() {
-    if (isDestructiveAction(script.action)) {
-      const confirmed = window.confirm(
-        `Yakin mau jalankan ${script.action} di ${connectionName}? Ini destructive.`,
-      );
-      if (!confirmed) return;
-      onRun(script.id, true);
-    } else {
-      onRun(script.id);
-    }
+    const confirmed = window.confirm(`Yakin mau jalankan script "${script.name}" di ${connectionName}?`);
+    if (!confirmed) return;
+    onRun(script.id, true);
   }
 
   return (
     <div className="project-card">
       <div className="project-card-title">
-        <span className={`action-badge action-badge--${script.action}`}>{script.action}</span>
+        <span className={`kind-badge kind-badge--${script.kind}`}>{script.kind}</span>
         <span className="project-name">{script.name}</span>
       </div>
       <div className="project-meta project-command">{script.payload}</div>
 
       <div className="project-card-actions">
         <button onClick={handleRun}>Run</button>
+        <button onClick={() => onEdit(script.id)} title="Edit script">
+          ✎ Edit
+        </button>
         <button className="danger" onClick={() => onDelete(script.id)}>
           Delete
         </button>
