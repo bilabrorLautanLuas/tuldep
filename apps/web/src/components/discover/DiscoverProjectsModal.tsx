@@ -93,7 +93,7 @@ export function DiscoverProjectsModal({ onClose, onImported }: DiscoverProjectsM
           onChange={(e) => setMaxDepth(Number(e.target.value) || 1)}
           className="max-depth-input"
         />
-        <button onClick={handleScan} disabled={scanning || !rootPath || !settings}>
+        <button className="primary" onClick={handleScan} disabled={scanning || !rootPath || !settings}>
           {scanning ? "Scanning…" : "Scan"}
         </button>
       </div>
@@ -114,7 +114,7 @@ export function DiscoverProjectsModal({ onClose, onImported }: DiscoverProjectsM
               />
             ))}
           </div>
-          <button onClick={handleImport} disabled={importing || selectedCount === 0}>
+          <button className="primary" onClick={handleImport} disabled={importing || selectedCount === 0}>
             Import Selected ({selectedCount})
           </button>
         </>

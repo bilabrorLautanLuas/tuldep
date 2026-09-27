@@ -156,7 +156,7 @@ export function ImportConfigModal({ onClose, onImported }: ImportConfigModalProp
             })}
           </div>
           <div className="form-actions">
-            <button onClick={handleConfirm} disabled={loading}>
+            <button className="primary" onClick={handleConfirm} disabled={loading}>
               {loading ? "Importing…" : "Confirm Import"}
             </button>
           </div>

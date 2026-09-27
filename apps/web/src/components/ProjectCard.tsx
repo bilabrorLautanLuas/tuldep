@@ -43,7 +43,11 @@ export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs, on
         )}
       </div>
       <div className="project-card-actions">
-        <button disabled={project.status === "running" || starting} onClick={() => onStart(project.id)}>
+        <button
+          className="primary"
+          disabled={project.status === "running" || starting}
+          onClick={() => onStart(project.id)}
+        >
           {starting ? <span className="spinner" /> : "Start"}
         </button>
         <button disabled={project.status !== "running"} onClick={() => onStop(project.id)}>

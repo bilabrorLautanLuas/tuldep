@@ -62,7 +62,7 @@ export function ExportConfigModal({ connections, scripts, onClose }: ExportConfi
 
       <h3>Connections</h3>
       <div className="config-checkbox-list">
-        {connections.length === 0 && <p className="empty-state">No connections.</p>}
+        {connections.length === 0 && <p className="empty-state">Nothing to export yet — add a connection first.</p>}
         {connections.map((c) => (
           <label key={c.id} className="config-checkbox-row">
             <input
@@ -78,7 +78,7 @@ export function ExportConfigModal({ connections, scripts, onClose }: ExportConfi
 
       <h3>Scripts</h3>
       <div className="config-checkbox-list">
-        {scripts.length === 0 && <p className="empty-state">No scripts.</p>}
+        {scripts.length === 0 && <p className="empty-state">Nothing to export yet — add a script first.</p>}
         {scripts.map((s) => (
           <label key={s.id} className="config-checkbox-row">
             <input
@@ -93,7 +93,7 @@ export function ExportConfigModal({ connections, scripts, onClose }: ExportConfi
       </div>
 
       <div className="form-actions">
-        <button onClick={handleDownload} disabled={exporting}>
+        <button className="primary" onClick={handleDownload} disabled={exporting}>
           {exporting ? "Preparing…" : "Download JSON"}
         </button>
       </div>

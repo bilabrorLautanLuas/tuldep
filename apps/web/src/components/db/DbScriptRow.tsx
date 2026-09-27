@@ -35,7 +35,7 @@ export function DbScriptRow({
       </div>
 
       <div className="project-card-actions">
-        <button onClick={handleRun} disabled={running}>
+        <button className="primary" onClick={handleRun} disabled={running}>
           {running ? <span className="spinner" /> : "Run"}
         </button>
         <button onClick={() => onEdit(script.id)} title="Edit script">
