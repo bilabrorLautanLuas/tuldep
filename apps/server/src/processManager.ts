@@ -1,4 +1,5 @@
 import type { Subprocess } from "bun";
+import { dirname } from "node:path";
 import type { Project, ProjectStatus } from "@tuldep/shared";
 import * as logStore from "./logStore";
 
@@ -38,10 +39,18 @@ export function startProject(project: Project): ProjectStatus {
     return existing.status;
   }
 
+  const env: Record<string, string | undefined> = { ...process.env, ...project.env };
+  if (project.engine) {
+    // prepend the chosen engine's bin dir so "npm run dev" / "php artisan serve" resolve to it first
+    const engineDir = dirname(project.engine.path);
+    const pathSep = process.platform === "win32" ? ";" : ":";
+    env.PATH = `${engineDir}${pathSep}${process.env.PATH ?? ""}`;
+  }
+
   const proc = Bun.spawn({
     cmd: platformCmd(project.command),
     cwd: project.cwd,
-    env: { ...process.env, ...project.env },
+    env,
     stdout: "pipe",
     stderr: "pipe",
   });

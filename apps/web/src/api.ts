@@ -6,6 +6,8 @@ import type {
   DbConnection,
   DbScript,
   DbScriptRunResult,
+  DetectedEngine,
+  EngineType,
   ImportApplySummary,
   ImportPreviewItem,
   ImportResolution,
@@ -18,6 +20,7 @@ import type {
   UpdateDbConnectionInput,
   UpdateDbScriptInput,
   UpdateProjectInput,
+  VerifyEngineResponse,
 } from "@tuldep/shared";
 
 const BASE_URL = "http://localhost:4100/api";
@@ -115,6 +118,22 @@ export async function discoverProjects(input: { rootPath: string; maxDepth?: num
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error ?? `scan failed (${res.status})`);
   }
+  return res.json();
+}
+
+// ---- Engine detection (Node/PHP version per project) ----
+
+export async function detectEngines(type: EngineType, refresh = false): Promise<DetectedEngine[]> {
+  const res = await fetch(`${BASE_URL}/engines/detect?type=${type}${refresh ? "&refresh=true" : ""}`);
+  return res.json();
+}
+
+export async function verifyEngine(path: string, type: EngineType): Promise<VerifyEngineResponse> {
+  const res = await fetch(`${BASE_URL}/engines/verify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path, type }),
+  });
   return res.json();
 }
 

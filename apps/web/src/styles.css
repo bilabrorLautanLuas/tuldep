@@ -168,6 +168,46 @@ body {
   gap: 8px;
 }
 
+.project-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.engine-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+}
+
+.engine-badge--node {
+  background: #234a2e;
+  color: #6fdc8c;
+}
+
+.engine-badge--php {
+  background: #3a1f4a;
+  color: #d79aff;
+}
+
+.port-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+  background: #1f3a5f;
+  color: #7ab8ff;
+  text-decoration: none;
+}
+
+.port-badge:hover {
+  background: #294c78;
+}
+
 .log-viewer {
   position: fixed;
   right: 24px;
@@ -507,6 +547,56 @@ body {
 .script-picker-option span {
   color: #ccc;
   word-break: break-all;
+}
+
+/* ---- Engine picker (ProjectForm) ---- */
+
+.engine-picker {
+  width: 100%;
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.engine-type-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.engine-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.engine-custom-path {
+  display: flex;
+  gap: 8px;
+}
+
+.engine-custom-path input {
+  flex: 1;
+  min-width: 160px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background: #0f1115;
+  color: #e6e6e6;
+  font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+}
+
+.engine-verify-ok {
+  font-size: 0.85rem;
+  color: #6fdc8c;
+}
+
+.engine-verify-fail {
+  font-size: 0.85rem;
+  color: #ff8a8a;
 }
 
 /* ---- Non-blocking per-item loading spinner (Start / Run) ---- */

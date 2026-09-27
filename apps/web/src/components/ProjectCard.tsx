@@ -20,6 +20,27 @@ export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs, on
         </div>
         <div className="project-meta">{project.cwd}</div>
         <div className="project-meta project-command">{project.command}</div>
+        {(project.engine || project.port) && (
+          <div className="project-badges">
+            {project.engine && (
+              <span className={`engine-badge engine-badge--${project.engine.type}`}>
+                {project.engine.type === "node" ? "⬢" : "🐘"} {project.engine.type === "node" ? "Node" : "PHP"}{" "}
+                {project.engine.version}
+              </span>
+            )}
+            {project.port && (
+              <a
+                className="port-badge"
+                href={`http://localhost:${project.port}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                🔗 localhost:{project.port}
+              </a>
+            )}
+          </div>
+        )}
       </div>
       <div className="project-card-actions">
         <button disabled={project.status === "running" || starting} onClick={() => onStart(project.id)}>

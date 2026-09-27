@@ -85,6 +85,8 @@ function ensureColumn(table: string, column: string, ddl: string): void {
 ensureColumn("db_connections", "createdAt", "INTEGER NOT NULL DEFAULT 0");
 ensureColumn("db_scripts", "createdAt", "INTEGER NOT NULL DEFAULT 0");
 ensureColumn("db_scripts", "kind", "TEXT NOT NULL DEFAULT 'postgres'");
+ensureColumn("projects", "engine", "TEXT");
+ensureColumn("projects", "port", "INTEGER");
 
 function ensureColumnDropped(table: string, column: string): void {
   const columns = db.query<{ name: string }, []>(`PRAGMA table_info(${table})`).all();
@@ -102,11 +104,22 @@ interface ProjectRow {
   cwd: string;
   command: string;
   env: string;
+  engine: string | null;
+  port: number | null;
   createdAt: number;
 }
 
 function rowToProject(row: ProjectRow): Project {
-  return { ...row, env: JSON.parse(row.env) };
+  return {
+    id: row.id,
+    name: row.name,
+    cwd: row.cwd,
+    command: row.command,
+    env: JSON.parse(row.env),
+    engine: row.engine ? JSON.parse(row.engine) : null,
+    port: row.port ?? null,
+    createdAt: row.createdAt,
+  };
 }
 
 export function getProjects(): Project[] {
@@ -120,10 +133,19 @@ export function getProject(id: string): Project | null {
 }
 
 export function createProject(input: CreateProjectInput): Project {
-  const project: Project = { id: crypto.randomUUID(), createdAt: Date.now(), ...input };
+  const project: Project = { id: crypto.randomUUID(), createdAt: Date.now(), engine: null, port: null, ...input };
   db.query(
-    "INSERT INTO projects (id, name, cwd, command, env, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
-  ).run(project.id, project.name, project.cwd, project.command, JSON.stringify(project.env), project.createdAt);
+    "INSERT INTO projects (id, name, cwd, command, env, engine, port, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+  ).run(
+    project.id,
+    project.name,
+    project.cwd,
+    project.command,
+    JSON.stringify(project.env),
+    project.engine ? JSON.stringify(project.engine) : null,
+    project.port ?? null,
+    project.createdAt,
+  );
   return project;
 }
 
@@ -135,11 +157,13 @@ export function updateProject(id: string, patch: UpdateProjectInput): Project | 
   const existing = getProject(id);
   if (!existing) return null;
   const updated: Project = { ...existing, ...patch };
-  db.query("UPDATE projects SET name = ?, cwd = ?, command = ?, env = ? WHERE id = ?").run(
+  db.query("UPDATE projects SET name = ?, cwd = ?, command = ?, env = ?, engine = ?, port = ? WHERE id = ?").run(
     updated.name,
     updated.cwd,
     updated.command,
     JSON.stringify(updated.env),
+    updated.engine ? JSON.stringify(updated.engine) : null,
+    updated.port ?? null,
     id,
   );
   return updated;

@@ -1,5 +1,37 @@
 import { z } from "zod";
 
+// ---- Engine selection (Node/PHP version picked per project) ----
+export const EngineTypeSchema = z.enum(["node", "php"]);
+export type EngineType = z.infer<typeof EngineTypeSchema>;
+
+export const DetectedEngineSchema = z.object({
+  type: EngineTypeSchema,
+  version: z.string(),
+  path: z.string(),
+  source: z.string(),
+});
+export type DetectedEngine = z.infer<typeof DetectedEngineSchema>;
+
+export const ProjectEngineSchema = z.object({
+  type: EngineTypeSchema,
+  path: z.string().min(1),
+  version: z.string(),
+});
+export type ProjectEngine = z.infer<typeof ProjectEngineSchema>;
+
+export const VerifyEngineRequestSchema = z.object({
+  path: z.string().min(1),
+  type: EngineTypeSchema,
+});
+export type VerifyEngineRequest = z.infer<typeof VerifyEngineRequestSchema>;
+
+export const VerifyEngineResponseSchema = z.object({
+  valid: z.boolean(),
+  version: z.string().optional(),
+  error: z.string().optional(),
+});
+export type VerifyEngineResponse = z.infer<typeof VerifyEngineResponseSchema>;
+
 // ---- Project ----
 export const ProjectSchema = z.object({
   id: z.string(),
@@ -7,6 +39,8 @@ export const ProjectSchema = z.object({
   cwd: z.string().min(1),
   command: z.string().min(1),
   env: z.record(z.string(), z.string()),
+  engine: ProjectEngineSchema.nullable().optional(),
+  port: z.number().int().min(1).max(65535).nullable().optional(),
   createdAt: z.number(),
 });
 export type Project = z.infer<typeof ProjectSchema>;

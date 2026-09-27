@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { AvailableScript, CreateProjectInput, PackageManager, Project } from "@tuldep/shared";
+import type { AvailableScript, CreateProjectInput, DetectedEngine, EngineType, PackageManager, Project } from "@tuldep/shared";
 import * as api from "../api";
 
 interface EnvRow {
@@ -16,6 +16,16 @@ interface ProjectFormProps {
 
 const CUSTOM = "__custom__";
 
+type EngineChoice = "none" | EngineType;
+
+interface EngineVerifyState {
+  status: "idle" | "checking" | "valid" | "invalid";
+  version?: string;
+  error?: string;
+}
+
+const ENGINE_LABEL: Record<EngineType, string> = { node: "Node.js", php: "PHP" };
+
 export function ProjectForm({ mode, initialProject, onSubmit, onCancel }: ProjectFormProps) {
   const [name, setName] = useState(initialProject?.name ?? "");
   const [cwd, setCwd] = useState(initialProject?.cwd ?? "");
@@ -30,6 +40,39 @@ export function ProjectForm({ mode, initialProject, onSubmit, onCancel }: Projec
   const [scriptsMessage, setScriptsMessage] = useState<string | undefined>(undefined);
   const [scriptsLoading, setScriptsLoading] = useState(false);
   const [selectedScript, setSelectedScript] = useState<string>(CUSTOM);
+
+  const [engineType, setEngineType] = useState<EngineChoice>(initialProject?.engine?.type ?? "none");
+  const [detectedEngines, setDetectedEngines] = useState<DetectedEngine[]>([]);
+  const [enginesLoading, setEnginesLoading] = useState(false);
+  const [selectedEnginePath, setSelectedEnginePath] = useState<string>(
+    initialProject?.engine ? initialProject.engine.path : CUSTOM,
+  );
+  const [customEnginePath, setCustomEnginePath] = useState<string>(initialProject?.engine?.path ?? "");
+  const [engineVerify, setEngineVerify] = useState<EngineVerifyState>({ status: "idle" });
+  const [port, setPort] = useState<string>(initialProject?.port != null ? String(initialProject.port) : "");
+
+  // Fetch detected engines whenever the engine type changes, and reconcile the initially-saved
+  // engine path against the freshly detected list (falls back to "Custom path" if it's not among them).
+  useEffect(() => {
+    if (engineType === "none") {
+      setDetectedEngines([]);
+      return;
+    }
+    setEnginesLoading(true);
+    api
+      .detectEngines(engineType)
+      .then((engines) => {
+        setDetectedEngines(engines);
+        if (initialProject?.engine?.type === engineType) {
+          const match = engines.find((e) => e.path === initialProject.engine!.path);
+          setSelectedEnginePath(match ? match.path : CUSTOM);
+          if (!match) setCustomEnginePath(initialProject.engine!.path);
+        }
+      })
+      .catch(() => setDetectedEngines([]))
+      .finally(() => setEnginesLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [engineType]);
 
   // Debounced fetch of package.json scripts whenever cwd settles — same endpoint
   // for create and edit, so editing cwd always reflects the currently-typed path
@@ -89,6 +132,28 @@ export function ProjectForm({ mode, initialProject, onSubmit, onCancel }: Projec
     setEnvRows((rows) => rows.filter((_, i) => i !== index));
   }
 
+  function changeEngineType(value: EngineChoice) {
+    setEngineType(value);
+    setSelectedEnginePath(CUSTOM);
+    setCustomEnginePath("");
+    setEngineVerify({ status: "idle" });
+  }
+
+  async function handleVerifyCustomPath() {
+    if (engineType === "none" || !customEnginePath.trim()) return;
+    setEngineVerify({ status: "checking" });
+    try {
+      const result = await api.verifyEngine(customEnginePath.trim(), engineType);
+      setEngineVerify(
+        result.valid
+          ? { status: "valid", version: result.version }
+          : { status: "invalid", error: result.error ?? "Path is not valid" },
+      );
+    } catch {
+      setEngineVerify({ status: "invalid", error: "Verify request failed" });
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name || !cwd || !command) return;
@@ -97,13 +162,35 @@ export function ProjectForm({ mode, initialProject, onSubmit, onCancel }: Projec
       const env = Object.fromEntries(
         envRows.filter((row) => row.key.trim().length > 0).map((row) => [row.key.trim(), row.value]),
       );
-      await onSubmit({ name, cwd, command, env });
+
+      let engine: CreateProjectInput["engine"] = null;
+      if (engineType !== "none") {
+        if (selectedEnginePath === CUSTOM) {
+          if (customEnginePath.trim()) {
+            engine = {
+              type: engineType,
+              path: customEnginePath.trim(),
+              version: engineVerify.status === "valid" ? engineVerify.version ?? "" : "",
+            };
+          }
+        } else {
+          const match = detectedEngines.find((e) => e.path === selectedEnginePath);
+          if (match) engine = { type: engineType, path: match.path, version: match.version };
+        }
+      }
+
+      const trimmedPort = port.trim();
+      const parsedPort = trimmedPort ? Number(trimmedPort) : null;
+
+      await onSubmit({ name, cwd, command, env, engine, port: parsedPort });
       if (mode === "create") {
         setName("");
         setCwd("");
         setCommand("");
         setEnvRows([]);
         setSelectedScript(CUSTOM);
+        changeEngineType("none");
+        setPort("");
       }
     } finally {
       setSubmitting(false);
@@ -150,6 +237,90 @@ export function ProjectForm({ mode, initialProject, onSubmit, onCancel }: Projec
       {showCommandInput && (
         <input placeholder="Command" value={command} onChange={(e) => setCommand(e.target.value)} />
       )}
+
+      <input
+        type="number"
+        min={1}
+        max={65535}
+        placeholder="Port (optional, e.g. 3000)"
+        value={port}
+        onChange={(e) => setPort(e.target.value)}
+      />
+
+      <div className="engine-picker">
+        <label className="engine-type-row">
+          <span>Engine</span>
+          <select value={engineType} onChange={(e) => changeEngineType(e.target.value as EngineChoice)}>
+            <option value="none">None (use system PATH)</option>
+            <option value="node">Node.js</option>
+            <option value="php">PHP</option>
+          </select>
+        </label>
+
+        {engineType !== "none" && (
+          <div className="engine-options">
+            {enginesLoading && (
+              <span className="script-picker-status">Detecting {ENGINE_LABEL[engineType]} versions…</span>
+            )}
+
+            {!enginesLoading && detectedEngines.length === 0 && (
+              <span className="script-picker-status">
+                Tidak ada versi {ENGINE_LABEL[engineType]} terdeteksi, gunakan custom path.
+              </span>
+            )}
+
+            {!enginesLoading && detectedEngines.length > 0 && (
+              <div className="script-picker-options">
+                {detectedEngines.map((engine) => (
+                  <label key={engine.path} className="script-picker-option">
+                    <input
+                      type="radio"
+                      checked={selectedEnginePath === engine.path}
+                      onChange={() => setSelectedEnginePath(engine.path)}
+                    />
+                    <span>
+                      <strong>v{engine.version}</strong> ({engine.source}) — {engine.path}
+                    </span>
+                  </label>
+                ))}
+                <label className="script-picker-option">
+                  <input
+                    type="radio"
+                    checked={selectedEnginePath === CUSTOM}
+                    onChange={() => setSelectedEnginePath(CUSTOM)}
+                  />
+                  <span>Custom path...</span>
+                </label>
+              </div>
+            )}
+
+            {!enginesLoading && (detectedEngines.length === 0 || selectedEnginePath === CUSTOM) && (
+              <div className="engine-custom-path">
+                <input
+                  placeholder={engineType === "node" ? "/path/to/node" : "/path/to/php"}
+                  value={customEnginePath}
+                  onChange={(e) => {
+                    setCustomEnginePath(e.target.value);
+                    setEngineVerify({ status: "idle" });
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleVerifyCustomPath}
+                  disabled={engineVerify.status === "checking" || !customEnginePath.trim()}
+                >
+                  {engineVerify.status === "checking" ? "Verifying…" : "Verify"}
+                </button>
+              </div>
+            )}
+
+            {engineVerify.status === "valid" && (
+              <span className="engine-verify-ok">✓ valid, v{engineVerify.version}</span>
+            )}
+            {engineVerify.status === "invalid" && <span className="engine-verify-fail">✗ {engineVerify.error}</span>}
+          </div>
+        )}
+      </div>
 
       <div className="env-editor">
         {envRows.map((row, i) => (

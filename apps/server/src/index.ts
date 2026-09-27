@@ -6,6 +6,7 @@ import { dbConnectionsRouter } from "./routes/dbConnections";
 import { dbScriptsRouter } from "./routes/dbScripts";
 import { scanRouter } from "./routes/scan";
 import { configRouter } from "./routes/config";
+import { enginesRouter } from "./routes/engines";
 import * as logStore from "./logStore";
 
 const app = new Hono();
@@ -24,6 +25,7 @@ app.route("/api/db-connections", dbConnectionsRouter);
 app.route("/api/db-scripts", dbScriptsRouter);
 app.route("/api", scanRouter);
 app.route("/api", configRouter);
+app.route("/api/engines", enginesRouter);
 
 app.get(
   "/ws/logs/:projectId",

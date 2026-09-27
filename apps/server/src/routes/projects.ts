@@ -14,7 +14,12 @@ projectsRouter.get("/", (c) => {
 });
 
 projectsRouter.post("/", async (c) => {
-  const body = CreateProjectSchema.parse(await c.req.json());
+  let body;
+  try {
+    body = CreateProjectSchema.parse(await c.req.json());
+  } catch {
+    return c.json({ error: "Invalid project input" }, 400);
+  }
   const project = db.createProject(body);
   return c.json(project, 201);
 });
@@ -27,7 +32,12 @@ projectsRouter.post("/import", async (c) => {
 
 projectsRouter.put("/:id", async (c) => {
   const id = c.req.param("id");
-  const body = UpdateProjectSchema.parse(await c.req.json());
+  let body;
+  try {
+    body = UpdateProjectSchema.parse(await c.req.json());
+  } catch {
+    return c.json({ error: "Invalid project input" }, 400);
+  }
   const updated = db.updateProject(id, body);
   if (!updated) return c.json({ error: "not found" }, 404);
   const status = pm.getStatus(id);
