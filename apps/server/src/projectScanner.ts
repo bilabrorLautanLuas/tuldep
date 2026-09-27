@@ -1,6 +1,6 @@
 import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
-import type { ProjectDetectedType, ProjectSuggestion } from "@tuldep/shared";
+import type { AvailableScriptsResponse, PackageManager, ProjectDetectedType, ProjectSuggestion } from "@tuldep/shared";
 
 export const DEFAULT_EXCLUDE_PATTERNS = ["node_modules", ".git", "dist", "build", ".next", "vendor"];
 
@@ -61,6 +61,31 @@ async function walk(
       await walk(fullPath, depth + 1, maxDepth, excludePatterns, results);
     }
   }
+}
+
+export async function getAvailableScripts(cwd: string): Promise<AvailableScriptsResponse> {
+  const packageJsonPath = join(cwd, "package.json");
+  if (!(await fileExists(packageJsonPath))) {
+    return { scripts: [], packageManager: null, message: "No package.json found in this directory" };
+  }
+
+  let rawScripts: Record<string, unknown> = {};
+  try {
+    const pkg = JSON.parse(await Bun.file(packageJsonPath).text());
+    rawScripts = pkg.scripts ?? {};
+  } catch {
+    return { scripts: [], packageManager: null, message: "package.json exists but could not be parsed" };
+  }
+
+  const isBun = (await fileExists(join(cwd, "bun.lockb"))) || (await fileExists(join(cwd, "bun.lock")));
+  const packageManager: PackageManager = isBun ? "bun" : "npm";
+
+  const scripts = Object.entries(rawScripts).map(([name, command]) => ({ name, command: String(command) }));
+  if (scripts.length === 0) {
+    return { scripts: [], packageManager, message: 'package.json has no "scripts" field' };
+  }
+
+  return { scripts, packageManager };
 }
 
 export async function scanForProjects(

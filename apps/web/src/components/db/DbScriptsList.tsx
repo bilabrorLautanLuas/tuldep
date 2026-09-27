@@ -6,6 +6,7 @@ interface DbScriptsListProps {
   scripts: DbScript[];
   lastResults: Record<string, DbScriptRunResult>;
   history: Record<string, DbScriptRunResult[]>;
+  runningIds: Set<string>;
   onRun: (id: string, confirmed?: boolean) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
@@ -16,6 +17,7 @@ export function DbScriptsList({
   scripts,
   lastResults,
   history,
+  runningIds,
   onRun,
   onEdit,
   onDelete,
@@ -40,6 +42,7 @@ export function DbScriptsList({
                   connectionName={connection.name}
                   lastResult={lastResults[script.id]}
                   history={history[script.id] ?? []}
+                  running={runningIds.has(script.id)}
                   onRun={onRun}
                   onEdit={onEdit}
                   onDelete={onDelete}

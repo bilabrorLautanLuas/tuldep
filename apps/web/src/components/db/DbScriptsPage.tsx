@@ -15,6 +15,7 @@ export function DbScriptsPage() {
   const [history, setHistory] = useState<Record<string, DbScriptRunResult[]>>({});
   const [editingConnectionId, setEditingConnectionId] = useState<string | null>(null);
   const [editingScriptId, setEditingScriptId] = useState<string | null>(null);
+  const [runningIds, setRunningIds] = useState<Set<string>>(new Set());
 
   const refreshHistoryFor = useCallback(async (scriptList: DbScript[]) => {
     const entries = await Promise.all(
@@ -45,10 +46,19 @@ export function DbScriptsPage() {
   }
 
   async function handleRunScript(id: string, confirmed?: boolean) {
-    const result = await api.runDbScript(id, confirmed);
-    setLastResults((prev) => ({ ...prev, [id]: result }));
-    const runHistory = await api.getDbScriptHistory(id);
-    setHistory((prev) => ({ ...prev, [id]: runHistory }));
+    setRunningIds((prev) => new Set(prev).add(id));
+    try {
+      const result = await api.runDbScript(id, confirmed);
+      setLastResults((prev) => ({ ...prev, [id]: result }));
+      const runHistory = await api.getDbScriptHistory(id);
+      setHistory((prev) => ({ ...prev, [id]: runHistory }));
+    } finally {
+      setRunningIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
   }
 
   async function handleDeleteScript(id: string) {
@@ -89,6 +99,7 @@ export function DbScriptsPage() {
         scripts={scripts}
         lastResults={lastResults}
         history={history}
+        runningIds={runningIds}
         onRun={handleRunScript}
         onEdit={setEditingScriptId}
         onDelete={handleDeleteScript}

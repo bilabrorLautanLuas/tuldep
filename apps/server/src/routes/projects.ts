@@ -3,6 +3,7 @@ import { CreateProjectSchema, ImportProjectsRequestSchema, UpdateProjectSchema }
 import * as db from "../db";
 import * as pm from "../processManager";
 import * as logStore from "../logStore";
+import * as scanner from "../projectScanner";
 
 export const projectsRouter = new Hono();
 
@@ -63,4 +64,10 @@ projectsRouter.get("/:id/status", (c) => {
 projectsRouter.delete("/:id/logs", async (c) => {
   await logStore.clearProjectLog(c.req.param("id"));
   return c.json({ success: true });
+});
+
+projectsRouter.get("/:id/available-scripts", async (c) => {
+  const project = db.getProject(c.req.param("id"));
+  if (!project) return c.json({ error: "not found" }, 404);
+  return c.json(await scanner.getAvailableScripts(project.cwd));
 });

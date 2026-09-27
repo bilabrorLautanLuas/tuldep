@@ -120,3 +120,20 @@ export const ImportProjectsRequestSchema = z.object({
   suggestions: z.array(CreateProjectSchema),
 });
 export type ImportProjectsRequest = z.infer<typeof ImportProjectsRequestSchema>;
+
+// ---- package.json script discovery (for the Add/Edit Project form) ----
+export const PackageManagerSchema = z.enum(["npm", "bun"]);
+export type PackageManager = z.infer<typeof PackageManagerSchema>;
+
+export const AvailableScriptSchema = z.object({
+  name: z.string(),
+  command: z.string(),
+});
+export type AvailableScript = z.infer<typeof AvailableScriptSchema>;
+
+export const AvailableScriptsResponseSchema = z.object({
+  scripts: z.array(AvailableScriptSchema),
+  packageManager: PackageManagerSchema.nullable(),
+  message: z.string().optional(),
+});
+export type AvailableScriptsResponse = z.infer<typeof AvailableScriptsResponseSchema>;

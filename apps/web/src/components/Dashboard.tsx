@@ -13,6 +13,7 @@ export function Dashboard() {
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [discoverOpen, setDiscoverOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [startingIds, setStartingIds] = useState<Set<string>>(new Set());
 
   const refresh = useCallback(async () => {
     setProjects(await api.listProjects());
@@ -31,8 +32,17 @@ export function Dashboard() {
   }, [notice]);
 
   async function handleStart(id: string) {
-    await api.startProject(id);
-    refresh();
+    setStartingIds((prev) => new Set(prev).add(id));
+    try {
+      await api.startProject(id);
+    } finally {
+      setStartingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      refresh();
+    }
   }
 
   async function handleStop(id: string) {
@@ -76,6 +86,7 @@ export function Dashboard() {
             onDelete={handleDelete}
             onOpenLogs={setSelectedProjectId}
             onEdit={setEditingProjectId}
+            starting={startingIds.has(project.id)}
           />
         ))}
       </div>

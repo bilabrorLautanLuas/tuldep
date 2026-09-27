@@ -5,12 +5,22 @@ interface DbScriptRowProps {
   connectionName: string;
   lastResult?: DbScriptRunResult;
   history: DbScriptRunResult[];
+  running?: boolean;
   onRun: (id: string, confirmed?: boolean) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-export function DbScriptRow({ script, connectionName, lastResult, history, onRun, onEdit, onDelete }: DbScriptRowProps) {
+export function DbScriptRow({
+  script,
+  connectionName,
+  lastResult,
+  history,
+  running,
+  onRun,
+  onEdit,
+  onDelete,
+}: DbScriptRowProps) {
   function handleRun() {
     const confirmed = window.confirm(`Yakin mau jalankan script "${script.name}" di ${connectionName}?`);
     if (!confirmed) return;
@@ -18,15 +28,16 @@ export function DbScriptRow({ script, connectionName, lastResult, history, onRun
   }
 
   return (
-    <div className="project-card">
+    <div className="project-card db-script-row">
       <div className="project-card-title">
         <span className={`kind-badge kind-badge--${script.kind}`}>{script.kind}</span>
         <span className="project-name">{script.name}</span>
       </div>
-      <div className="project-meta project-command">{script.payload}</div>
 
       <div className="project-card-actions">
-        <button onClick={handleRun}>Run</button>
+        <button onClick={handleRun} disabled={running}>
+          {running ? <span className="spinner" /> : "Run"}
+        </button>
         <button onClick={() => onEdit(script.id)} title="Edit script">
           ✎ Edit
         </button>

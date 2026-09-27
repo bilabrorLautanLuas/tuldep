@@ -7,9 +7,10 @@ interface ProjectCardProps {
   onDelete: (id: string) => void;
   onOpenLogs: (id: string) => void;
   onEdit: (id: string) => void;
+  starting?: boolean;
 }
 
-export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs, onEdit }: ProjectCardProps) {
+export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs, onEdit, starting }: ProjectCardProps) {
   return (
     <div className="project-card">
       <div className="project-card-body" onClick={() => onOpenLogs(project.id)}>
@@ -21,8 +22,8 @@ export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs, on
         <div className="project-meta project-command">{project.command}</div>
       </div>
       <div className="project-card-actions">
-        <button disabled={project.status === "running"} onClick={() => onStart(project.id)}>
-          Start
+        <button disabled={project.status === "running" || starting} onClick={() => onStart(project.id)}>
+          {starting ? <span className="spinner" /> : "Start"}
         </button>
         <button disabled={project.status !== "running"} onClick={() => onStop(project.id)}>
           Stop

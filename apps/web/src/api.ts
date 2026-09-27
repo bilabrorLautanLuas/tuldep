@@ -1,4 +1,5 @@
 import type {
+  AvailableScriptsResponse,
   CreateDbConnectionInput,
   CreateDbScriptInput,
   CreateProjectInput,
@@ -47,6 +48,19 @@ export async function stopProject(id: string): Promise<{ status: ProjectStatus }
 
 export async function clearProjectLog(id: string): Promise<{ success: boolean }> {
   const res = await fetch(`${BASE_URL}/projects/${id}/logs`, { method: "DELETE" });
+  return res.json();
+}
+
+// Kept for symmetry with the backend contract (reads scripts from the project's
+// saved cwd by id); the form itself uses getScriptsPreview below so it reflects
+// whatever cwd is currently typed, in both create and edit mode.
+export async function getAvailableScripts(id: string): Promise<AvailableScriptsResponse> {
+  const res = await fetch(`${BASE_URL}/projects/${id}/available-scripts`);
+  return res.json();
+}
+
+export async function getScriptsPreview(cwd: string): Promise<AvailableScriptsResponse> {
+  const res = await fetch(`${BASE_URL}/scan/scripts-preview?cwd=${encodeURIComponent(cwd)}`);
   return res.json();
 }
 

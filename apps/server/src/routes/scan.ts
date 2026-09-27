@@ -12,6 +12,12 @@ scanRouter.put("/scan-settings", async (c) => {
   return c.json(db.saveScanSettings(body));
 });
 
+scanRouter.get("/scan/scripts-preview", async (c) => {
+  const cwd = c.req.query("cwd");
+  if (!cwd) return c.json({ scripts: [], packageManager: null, message: "cwd is required" }, 400);
+  return c.json(await scanner.getAvailableScripts(cwd));
+});
+
 scanRouter.post("/scan/discover", async (c) => {
   const body = DiscoverRequestSchema.parse(await c.req.json().catch(() => ({})));
   const settings = db.getScanSettings();
