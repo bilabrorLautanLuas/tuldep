@@ -66,7 +66,9 @@ body {
 .add-project-form button,
 .project-card-actions button,
 .log-viewer-header button,
-.app-nav button {
+.app-nav button,
+.dashboard-toolbar button,
+.modal-body button {
   padding: 8px 14px;
   border-radius: 6px;
   border: 1px solid #333;
@@ -78,17 +80,21 @@ body {
 .add-project-form button:hover,
 .project-card-actions button:hover:not(:disabled),
 .log-viewer-header button:hover,
-.app-nav button:hover {
+.app-nav button:hover,
+.dashboard-toolbar button:hover,
+.modal-body button:hover:not(:disabled) {
   background: #3a3f4b;
 }
 
 .add-project-form button:disabled,
-.project-card-actions button:disabled {
+.project-card-actions button:disabled,
+.modal-body button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.project-card-actions button.danger {
+.project-card-actions button.danger,
+.modal-body button.danger {
   border-color: #7a2b2b;
 }
 
@@ -239,6 +245,26 @@ body {
   color: #6fdc8c;
 }
 
+.kind-badge--node {
+  background: #234a2e;
+  color: #6fdc8c;
+}
+
+.kind-badge--bun {
+  background: #4a2e1f;
+  color: #ffb37a;
+}
+
+.kind-badge--laravel {
+  background: #3a1f4a;
+  color: #d79aff;
+}
+
+.kind-badge--unknown {
+  background: #2a2e37;
+  color: #999;
+}
+
 .action-badge {
   display: inline-block;
   padding: 2px 8px;
@@ -288,4 +314,164 @@ body {
   display: flex;
   justify-content: space-between;
   gap: 8px;
+}
+
+/* ---- Dashboard toolbar + edit notice ---- */
+
+.dashboard-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.notice-banner {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: #1a2e1f;
+  color: #7fe0a0;
+  font-size: 0.9rem;
+}
+
+/* ---- Env key-value editor (ProjectForm) ---- */
+
+.env-editor {
+  width: 100%;
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.env-row {
+  display: flex;
+  gap: 8px;
+}
+
+.env-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-actions {
+  width: 100%;
+  flex-basis: 100%;
+  display: flex;
+  gap: 8px;
+}
+
+/* ---- Modal ---- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #14161c;
+  border: 1px solid #2a2e37;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 640px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #1a1d24;
+  font-weight: 600;
+}
+
+.modal-header button {
+  background: none;
+  border: none;
+  color: #e6e6e6;
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.modal-body .add-project-form {
+  margin-bottom: 0;
+}
+
+/* ---- Discover Projects modal ---- */
+
+.discover-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.discover-form input {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background: #0f1115;
+  color: #e6e6e6;
+}
+
+.discover-form input:first-child {
+  flex: 1;
+}
+
+.max-depth-input {
+  width: 70px;
+}
+
+.suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.suggestion-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #1a1d24;
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.suggestion-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.suggestion-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.suggestion-command-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background: #0f1115;
+  color: #e6e6e6;
+  font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+  font-size: 0.85rem;
 }

@@ -14,6 +14,9 @@ export type Project = z.infer<typeof ProjectSchema>;
 export const CreateProjectSchema = ProjectSchema.omit({ id: true, createdAt: true });
 export type CreateProjectInput = z.infer<typeof CreateProjectSchema>;
 
+export const UpdateProjectSchema = CreateProjectSchema.partial();
+export type UpdateProjectInput = z.infer<typeof UpdateProjectSchema>;
+
 // ---- ProjectStatus ----
 export const ProjectStatusSchema = z.enum(["stopped", "running", "crashed"]);
 export type ProjectStatus = z.infer<typeof ProjectStatusSchema>;
@@ -85,3 +88,38 @@ export type DbScriptRunResult = z.infer<typeof DbScriptRunResultSchema>;
 
 export const RunDbScriptRequestSchema = z.object({ confirmed: z.boolean().optional() });
 export type RunDbScriptRequest = z.infer<typeof RunDbScriptRequestSchema>;
+
+// ---- Project auto-discovery ----
+export const ProjectDetectedTypeSchema = z.enum(["node", "bun", "laravel", "unknown"]);
+export type ProjectDetectedType = z.infer<typeof ProjectDetectedTypeSchema>;
+
+export const ProjectSuggestionSchema = z.object({
+  path: z.string(),
+  name: z.string(),
+  detectedType: ProjectDetectedTypeSchema,
+  suggestedCommand: z.string(),
+  env: z.record(z.string(), z.string()),
+});
+export type ProjectSuggestion = z.infer<typeof ProjectSuggestionSchema>;
+
+export const ScanSettingsSchema = z.object({
+  id: z.string(),
+  rootPath: z.string(),
+  maxDepth: z.number().int().positive(),
+  excludePatterns: z.array(z.string()),
+});
+export type ScanSettings = z.infer<typeof ScanSettingsSchema>;
+
+export const UpdateScanSettingsSchema = ScanSettingsSchema.omit({ id: true });
+export type UpdateScanSettingsInput = z.infer<typeof UpdateScanSettingsSchema>;
+
+export const DiscoverRequestSchema = z.object({
+  rootPath: z.string().optional(),
+  maxDepth: z.number().int().positive().optional(),
+});
+export type DiscoverRequest = z.infer<typeof DiscoverRequestSchema>;
+
+export const ImportProjectsRequestSchema = z.object({
+  suggestions: z.array(CreateProjectSchema),
+});
+export type ImportProjectsRequest = z.infer<typeof ImportProjectsRequestSchema>;

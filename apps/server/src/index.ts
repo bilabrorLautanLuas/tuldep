@@ -4,6 +4,7 @@ import { upgradeWebSocket, websocket } from "hono/bun";
 import { projectsRouter } from "./routes/projects";
 import { dbConnectionsRouter } from "./routes/dbConnections";
 import { dbScriptsRouter } from "./routes/dbScripts";
+import { scanRouter } from "./routes/scan";
 import * as logStore from "./logStore";
 
 const app = new Hono();
@@ -12,13 +13,14 @@ app.use(
   "/api/*",
   cors({
     origin: "http://localhost:5273",
-    allowMethods: ["GET", "POST", "DELETE"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE"],
   }),
 );
 
 app.route("/api/projects", projectsRouter);
 app.route("/api/db-connections", dbConnectionsRouter);
 app.route("/api/db-scripts", dbScriptsRouter);
+app.route("/api", scanRouter);
 
 app.get(
   "/ws/logs/:projectId",

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { CreateProjectSchema } from "@tuldep/shared";
+import { CreateProjectSchema, ImportProjectsRequestSchema, UpdateProjectSchema } from "@tuldep/shared";
 import * as db from "../db";
 import * as pm from "../processManager";
 
@@ -15,6 +15,23 @@ projectsRouter.post("/", async (c) => {
   const body = CreateProjectSchema.parse(await c.req.json());
   const project = db.createProject(body);
   return c.json(project, 201);
+});
+
+projectsRouter.post("/import", async (c) => {
+  const body = ImportProjectsRequestSchema.parse(await c.req.json());
+  const imported = db.importProjects(body.suggestions);
+  return c.json(imported, 201);
+});
+
+projectsRouter.put("/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = UpdateProjectSchema.parse(await c.req.json());
+  const updated = db.updateProject(id, body);
+  if (!updated) return c.json({ error: "not found" }, 404);
+  const status = pm.getStatus(id);
+  const notice =
+    status === "running" ? "Perubahan tersimpan, restart project untuk menerapkan config baru" : undefined;
+  return c.json({ project: updated, status, notice });
 });
 
 projectsRouter.delete("/:id", async (c) => {

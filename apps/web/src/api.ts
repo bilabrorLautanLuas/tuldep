@@ -7,7 +7,10 @@ import type {
   DbScriptRunResult,
   Project,
   ProjectStatus,
+  ProjectSuggestion,
   ProjectWithStatus,
+  ScanSettings,
+  UpdateProjectInput,
 } from "@tuldep/shared";
 
 const BASE_URL = "http://localhost:4100/api";
@@ -37,6 +40,56 @@ export async function startProject(id: string): Promise<{ status: ProjectStatus 
 
 export async function stopProject(id: string): Promise<{ status: ProjectStatus }> {
   const res = await fetch(`${BASE_URL}/projects/${id}/stop`, { method: "POST" });
+  return res.json();
+}
+
+export async function updateProject(
+  id: string,
+  input: UpdateProjectInput,
+): Promise<{ project: Project; status: ProjectStatus; notice?: string }> {
+  const res = await fetch(`${BASE_URL}/projects/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  return res.json();
+}
+
+export async function importProjects(suggestions: CreateProjectInput[]): Promise<Project[]> {
+  const res = await fetch(`${BASE_URL}/projects/import`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ suggestions }),
+  });
+  return res.json();
+}
+
+// ---- Project auto-discovery ----
+
+export async function getScanSettings(): Promise<ScanSettings> {
+  const res = await fetch(`${BASE_URL}/scan-settings`);
+  return res.json();
+}
+
+export async function saveScanSettings(input: Omit<ScanSettings, "id">): Promise<ScanSettings> {
+  const res = await fetch(`${BASE_URL}/scan-settings`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  return res.json();
+}
+
+export async function discoverProjects(input: { rootPath: string; maxDepth?: number }): Promise<ProjectSuggestion[]> {
+  const res = await fetch(`${BASE_URL}/scan/discover`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `scan failed (${res.status})`);
+  }
   return res.json();
 }
 

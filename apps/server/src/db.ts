@@ -8,7 +8,11 @@ import type {
   DbScript,
   DbScriptRunResult,
   Project,
+  ScanSettings,
+  UpdateProjectInput,
+  UpdateScanSettingsInput,
 } from "@tuldep/shared";
+import { DEFAULT_EXCLUDE_PATTERNS } from "./projectScanner";
 
 mkdirSync("data", { recursive: true });
 
@@ -61,6 +65,16 @@ db.run(`
 `);
 db.run("CREATE INDEX IF NOT EXISTS idx_script_runs_scriptId ON script_runs(scriptId)");
 
+db.run(`
+  CREATE TABLE IF NOT EXISTS scan_settings (
+    id TEXT PRIMARY KEY,
+    rootPath TEXT NOT NULL,
+    maxDepth INTEGER NOT NULL,
+    excludePatterns TEXT NOT NULL,
+    updatedAt INTEGER NOT NULL
+  )
+`);
+
 function ensureColumn(table: string, column: string, ddl: string): void {
   const columns = db.query<{ name: string }, []>(`PRAGMA table_info(${table})`).all();
   if (!columns.some((c) => c.name === column)) {
@@ -104,6 +118,25 @@ export function createProject(input: CreateProjectInput): Project {
 
 export function deleteProject(id: string): void {
   db.query("DELETE FROM projects WHERE id = ?").run(id);
+}
+
+export function updateProject(id: string, patch: UpdateProjectInput): Project | null {
+  const existing = getProject(id);
+  if (!existing) return null;
+  const updated: Project = { ...existing, ...patch };
+  db.query("UPDATE projects SET name = ?, cwd = ?, command = ?, env = ? WHERE id = ?").run(
+    updated.name,
+    updated.cwd,
+    updated.command,
+    JSON.stringify(updated.env),
+    id,
+  );
+  return updated;
+}
+
+export function importProjects(inputs: CreateProjectInput[]): Project[] {
+  const insertAll = db.transaction((rows: CreateProjectInput[]) => rows.map((input) => createProject(input)));
+  return insertAll(inputs);
 }
 
 // ---- DbConnection ----
@@ -184,4 +217,38 @@ export function getScriptRunHistory(scriptId: string, limit: number = 10): DbScr
     )
     .all(scriptId, limit);
   return rows.map(rowToScriptRun);
+}
+
+// ---- scan_settings (single row, fixed id 'default') ----
+
+const SCAN_SETTINGS_ID = "default";
+
+interface ScanSettingsRow {
+  id: string;
+  rootPath: string;
+  maxDepth: number;
+  excludePatterns: string;
+  updatedAt: number;
+}
+
+function rowToScanSettings(row: ScanSettingsRow): ScanSettings {
+  return { id: row.id, rootPath: row.rootPath, maxDepth: row.maxDepth, excludePatterns: JSON.parse(row.excludePatterns) };
+}
+
+export function getScanSettings(): ScanSettings {
+  const row = db.query<ScanSettingsRow, [string]>("SELECT * FROM scan_settings WHERE id = ?").get(SCAN_SETTINGS_ID);
+  if (!row) {
+    return { id: SCAN_SETTINGS_ID, rootPath: "", maxDepth: 2, excludePatterns: DEFAULT_EXCLUDE_PATTERNS };
+  }
+  return rowToScanSettings(row);
+}
+
+export function saveScanSettings(input: UpdateScanSettingsInput): ScanSettings {
+  const settings: ScanSettings = { id: SCAN_SETTINGS_ID, ...input };
+  db.query(
+    `INSERT INTO scan_settings (id, rootPath, maxDepth, excludePatterns, updatedAt) VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET rootPath = excluded.rootPath, maxDepth = excluded.maxDepth,
+       excludePatterns = excluded.excludePatterns, updatedAt = excluded.updatedAt`,
+  ).run(settings.id, settings.rootPath, settings.maxDepth, JSON.stringify(settings.excludePatterns), Date.now());
+  return settings;
 }

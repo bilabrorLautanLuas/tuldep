@@ -6,9 +6,10 @@ interface ProjectCardProps {
   onStop: (id: string) => void;
   onDelete: (id: string) => void;
   onOpenLogs: (id: string) => void;
+  onEdit: (id: string) => void;
 }
 
-export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs }: ProjectCardProps) {
+export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs, onEdit }: ProjectCardProps) {
   return (
     <div className="project-card">
       <div className="project-card-body" onClick={() => onOpenLogs(project.id)}>
@@ -25,6 +26,9 @@ export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs }: 
         </button>
         <button disabled={project.status !== "running"} onClick={() => onStop(project.id)}>
           Stop
+        </button>
+        <button onClick={() => onEdit(project.id)} title="Edit project">
+          ✎ Edit
         </button>
         <button className="danger" onClick={() => onDelete(project.id)}>
           Delete
