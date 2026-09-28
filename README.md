@@ -11,16 +11,23 @@ bun install
 
 ## Run
 
-Two terminals:
+From the root — starts both at once (API on http://localhost:4100,
+dashboard on http://localhost:5273):
 
 ```bash
-# terminal 1 — API on http://localhost:4100
+bun run dev
+```
+
+Or run just one, in its own terminal:
+
+```bash
+# API only
 cd apps/server
 bun run dev
 ```
 
 ```bash
-# terminal 2 — dashboard on http://localhost:5273
+# dashboard only
 cd apps/web
 bun run dev
 ```

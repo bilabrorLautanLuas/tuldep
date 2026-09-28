@@ -6,6 +6,9 @@
     "apps/*",
     "packages/*"
   ],
+  "scripts": {
+    "dev": "bun run --filter \"*\" dev"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "typescript": "^5"
