@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { CreateDbScriptInput, DbConnection, DbScript } from "@tuldep/shared";
+import { EmptyState } from "../Mascot";
 
 interface ScriptFormProps {
   mode: "create" | "edit";
@@ -41,7 +42,7 @@ export function ScriptForm({ mode, connections, initialScript, onSubmit, onCance
   }
 
   if (connections.length === 0) {
-    return <p className="empty-state">Add a connection first before creating scripts.</p>;
+    return <EmptyState compact>Add a connection first before creating scripts.</EmptyState>;
   }
 
   return (

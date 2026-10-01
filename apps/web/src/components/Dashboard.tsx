@@ -5,6 +5,7 @@ import { ProjectForm } from "./ProjectForm";
 import { ProjectCard } from "./ProjectCard";
 import { LogViewer } from "./LogViewer";
 import { Modal } from "./Modal";
+import { EmptyState } from "./Mascot";
 import { DiscoverProjectsModal } from "./discover/DiscoverProjectsModal";
 
 export function Dashboard() {
@@ -76,7 +77,7 @@ export function Dashboard() {
       />
 
       <div className="project-grid">
-        {projects.length === 0 && <p className="empty-state">No projects yet — add one above.</p>}
+        {projects.length === 0 && <EmptyState>No projects yet — add one above!</EmptyState>}
         {projects.map((project) => (
           <ProjectCard
             key={project.id}

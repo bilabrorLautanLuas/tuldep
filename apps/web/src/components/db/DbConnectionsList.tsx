@@ -1,4 +1,5 @@
 import type { DbConnection } from "@tuldep/shared";
+import { EmptyState } from "../Mascot";
 
 interface DbConnectionsListProps {
   connections: DbConnection[];
@@ -10,7 +11,7 @@ interface DbConnectionsListProps {
 
 export function DbConnectionsList({ connections, testResults, onTest, onEdit, onDelete }: DbConnectionsListProps) {
   if (connections.length === 0) {
-    return <p className="empty-state">No connections yet — add one above.</p>;
+    return <EmptyState>No connections yet — add one above!</EmptyState>;
   }
 
   return (

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { ProjectSuggestion, ScanSettings } from "@tuldep/shared";
 import * as api from "../../api";
 import { Modal } from "../Modal";
+import { EmptyState } from "../Mascot";
 import { SuggestionRow } from "./SuggestionRow";
 
 interface DiscoverProjectsModalProps {
@@ -121,7 +122,7 @@ export function DiscoverProjectsModal({ onClose, onImported }: DiscoverProjectsM
       )}
 
       {!scanning && suggestions.length === 0 && !error && (
-        <p className="empty-state">No results yet — run a scan.</p>
+        <EmptyState compact>No results yet — run a scan.</EmptyState>
       )}
     </Modal>
   );

@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { DbConnection, DbScript } from "@tuldep/shared";
 import * as api from "../../api";
 import { Modal } from "../Modal";
+import { EmptyState } from "../Mascot";
 
 interface ExportConfigModalProps {
   connections: DbConnection[];
@@ -62,7 +63,7 @@ export function ExportConfigModal({ connections, scripts, onClose }: ExportConfi
 
       <h3>Connections</h3>
       <div className="config-checkbox-list">
-        {connections.length === 0 && <p className="empty-state">Nothing to export yet — add a connection first.</p>}
+        {connections.length === 0 && <EmptyState compact>Nothing to export yet — add a connection first.</EmptyState>}
         {connections.map((c) => (
           <label key={c.id} className="config-checkbox-row">
             <input
@@ -78,7 +79,7 @@ export function ExportConfigModal({ connections, scripts, onClose }: ExportConfi
 
       <h3>Scripts</h3>
       <div className="config-checkbox-list">
-        {scripts.length === 0 && <p className="empty-state">Nothing to export yet — add a script first.</p>}
+        {scripts.length === 0 && <EmptyState compact>Nothing to export yet — add a script first.</EmptyState>}
         {scripts.map((s) => (
           <label key={s.id} className="config-checkbox-row">
             <input

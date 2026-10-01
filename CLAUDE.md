@@ -119,15 +119,26 @@ Didefinisikan di `packages/shared/src` sebagai Zod schema + TypeScript types.
 
 ## Design System
 
-> ⚠️ **Isi bagian ini manual** setelah proses refine UI selesai — minta
-> Claude Code untuk ringkas token yang dipakai (color palette + alasan,
-> typeface + alasan) lalu tempel di sini. Ini penting supaya fitur baru ke
-> depan otomatis konsisten tanpa perlu re-jelaskan brief desain tiap sesi.
+Semua token ada di `:root` di `apps/web/src/styles.css` — pakai token, jangan
+hardcode warna/radius baru. Tema "cute dev tool": dark-first, navy-tinted,
+bentuk bulat, sedikit playful, dipandu oleh maskot (`apps/web/public/mascot*.png`).
 
 ```
-Color:
-Type:
-Layout principles:
+Color:  Diambil dari maskot. Navy hoodie → surface (--bg #0d1330, --surface
+        #151d44, --surface-raised #1c2757, --surface-sunken #0a0f26 untuk
+        console/input). Sky-blue jambul → --accent #3db8f5 (satu aksi primer
+        per surface). Kuning wrench/sparkle → --highlight / --loading.
+        Status: running hijau mint, crashed merah muda, stopped abu-navy.
+Type:   Nunito (rounded, ramah) untuk UI, weight 700–800 untuk judul/tombol.
+        IBM Plex Mono untuk command, port, IP, log — konten teknis tetap mono.
+Layout: Full-width. Radius: --radius-card 16px (card/panel/log), --radius-field
+        10px (input/row), --radius-control pill (semua tombol & badge). Tombol
+        "chunky" (shadow bawah solid, tenggelam saat :active). Card naik 2px saat
+        hover. Animasi pakai --ease-bounce, dan semuanya mati di
+        prefers-reduced-motion.
+Mascot: <Mascot> di header (wave on hover). <EmptyState> (mascot + speech
+        bubble, prop `compact` untuk modal) dipakai untuk SEMUA empty state —
+        jangan bikin <p className="empty-state"> polos lagi.
 ```
 
 ## API Pattern
@@ -147,11 +158,13 @@ dari backend lokal (lihat catatan di bawah), origin perlu disesuaikan.
 bun run dev
 ```
 
-Root script ini pakai fitur native Bun workspaces filter
-(`bun run --filter "*" dev`), bukan `concurrently`/`turbo` — keputusan
-sadar biar gak nambah dependency, konsisten dengan filosofi "Bun-only".
-`packages/shared` gak punya script `dev` jadi otomatis di-skip oleh
-filter, cuma `apps/server` dan `apps/web` yang jalan.
+Root script ini menjalankan `scripts/dev.ts` (launcher kecil pakai `Bun.spawn`),
+bukan `concurrently`/`turbo` — keputusan sadar biar gak nambah dependency,
+konsisten dengan filosofi "Bun-only". Sebelumnya pakai `bun run --filter "*" dev`,
+tapi di Windows itu bikin Ctrl+C hang karena sinyal tidak diteruskan ke child
+(dan meninggalkan proses orphan). Launcher menangani SIGINT/SIGTERM dengan
+`taskkill /t /f` ke seluruh process tree. Cuma `apps/server` dan `apps/web`
+yang jalan.
 
 Atau manual per-app kalau cuma butuh salah satu:
 

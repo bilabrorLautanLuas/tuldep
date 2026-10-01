@@ -1,5 +1,6 @@
 import type { DbConnection, DbScript, DbScriptRunResult } from "@tuldep/shared";
 import { DbScriptRow } from "./DbScriptRow";
+import { EmptyState } from "../Mascot";
 
 interface DbScriptsListProps {
   connections: DbConnection[];
@@ -23,7 +24,7 @@ export function DbScriptsList({
   onDelete,
 }: DbScriptsListProps) {
   if (scripts.length === 0) {
-    return <p className="empty-state">No scripts yet — add one above.</p>;
+    return <EmptyState>No scripts yet — add one above!</EmptyState>;
   }
 
   return (
