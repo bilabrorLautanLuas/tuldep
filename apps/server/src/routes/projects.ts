@@ -9,6 +9,7 @@ import * as db from "../db";
 import * as pm from "../processManager";
 import * as logStore from "../logStore";
 import * as scanner from "../projectScanner";
+import { getGitInfo, pullProject } from "../gitService";
 
 export const projectsRouter = new Hono();
 
@@ -77,6 +78,24 @@ projectsRouter.post("/:id/start", (c) => {
   if (!project) return c.json({ error: "not found" }, 404);
   const status = pm.startProject(project);
   return c.json({ status });
+});
+
+projectsRouter.get("/:id/git", async (c) => {
+  const project = db.getProject(c.req.param("id"));
+  if (!project) return c.json({ error: "not found" }, 404);
+  return c.json(await getGitInfo(project.cwd));
+});
+
+projectsRouter.post("/:id/git/pull", async (c) => {
+  const id = c.req.param("id");
+  const project = db.getProject(id);
+  if (!project) return c.json({ error: "not found" }, 404);
+  const result = await pullProject(project.cwd);
+  const notice =
+    result.success && pm.getStatus(id) === "running"
+      ? "Pull selesai, restart project untuk menerapkan perubahan kode"
+      : undefined;
+  return c.json({ ...result, notice });
 });
 
 projectsRouter.post("/:id/stop", async (c) => {

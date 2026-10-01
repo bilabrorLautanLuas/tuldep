@@ -1,17 +1,43 @@
-import type { ProjectWithStatus } from "@tuldep/shared";
-import { EditIcon, PlayIcon, StopIcon, TrashIcon } from "./Icons";
+import type { GitInfo, ProjectWithStatus } from "@tuldep/shared";
+import { EditIcon, GitBranchIcon, PlayIcon, PullIcon, StopIcon, TrashIcon } from "./Icons";
 
 interface ProjectCardProps {
   project: ProjectWithStatus;
+  git?: GitInfo;
   onStart: (id: string) => void;
   onStop: (id: string) => void;
   onDelete: (id: string) => void;
   onOpenLogs: (id: string) => void;
   onEdit: (id: string) => void;
+  onPull: (id: string) => void;
   starting?: boolean;
+  pulling?: boolean;
 }
 
-export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs, onEdit, starting }: ProjectCardProps) {
+function gitTitle(git: GitInfo): string {
+  const parts = [git.detached ? "Detached HEAD" : `Branch ${git.branch}`];
+  if (git.dirty) parts.push("uncommitted changes");
+  if (!git.hasUpstream) parts.push("no upstream");
+  else {
+    if (git.ahead) parts.push(`${git.ahead} commit to push`);
+    if (git.behind) parts.push(`${git.behind} commit to pull`);
+  }
+  return parts.join(" · ");
+}
+
+export function ProjectCard({
+  project,
+  git,
+  onStart,
+  onStop,
+  onDelete,
+  onOpenLogs,
+  onEdit,
+  onPull,
+  starting,
+  pulling,
+}: ProjectCardProps) {
+  const showGit = git?.isRepo === true && !!git.branch;
   return (
     <div className="project-card">
       <div className="project-card-body" onClick={() => onOpenLogs(project.id)}>
@@ -21,7 +47,7 @@ export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs, on
         </div>
         <div className="project-meta">{project.cwd}</div>
         <div className="project-meta project-command">{project.command}</div>
-        {(project.engine || project.port) && (
+        {(project.engine || project.port || showGit) && (
           <div className="project-badges">
             {project.engine && (
               <span className={`engine-badge engine-badge--${project.engine.type}`}>
@@ -39,6 +65,14 @@ export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs, on
               >
                 🔗 localhost:{project.port}
               </a>
+            )}
+            {showGit && git && (
+              <span className="git-badge" title={gitTitle(git)}>
+                <GitBranchIcon /> {git.branch}
+                {git.dirty && <span className="git-badge-dirty">●</span>}
+                {git.hasUpstream && !!git.ahead && <span className="git-badge-sync">↑{git.ahead}</span>}
+                {git.hasUpstream && !!git.behind && <span className="git-badge-sync">↓{git.behind}</span>}
+              </span>
             )}
           </div>
         )}
@@ -62,6 +96,17 @@ export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs, on
         >
           <StopIcon />
         </button>
+        {git?.isRepo && (
+          <button
+            className="icon-btn"
+            title={git.hasUpstream ? "Pull latest" : "Pull (branch has no upstream)"}
+            aria-label="Pull latest"
+            disabled={pulling || !git.hasUpstream}
+            onClick={() => onPull(project.id)}
+          >
+            {pulling ? <span className="spinner" /> : <PullIcon />}
+          </button>
+        )}
         <button className="icon-btn" title="Edit" aria-label="Edit project" onClick={() => onEdit(project.id)}>
           <EditIcon />
         </button>

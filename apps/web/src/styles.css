@@ -619,6 +619,7 @@ h3 {
 /* Unified pill badge base — status/kind/engine/port/import-status all share this shape */
 .engine-badge,
 .port-badge,
+.git-badge,
 .kind-badge,
 .status-badge {
   display: inline-flex;
@@ -649,6 +650,19 @@ h3 {
 
 .port-badge:hover {
   background: #1c3c56;
+}
+
+.git-badge {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.git-badge-dirty {
+  color: var(--highlight);
+}
+
+.git-badge-sync {
+  color: var(--accent);
 }
 
 /* =========================================================================
@@ -799,7 +813,16 @@ h3 {
   font-size: var(--text-base);
   font-weight: 700;
   border: 1px solid rgba(61, 219, 160, 0.3);
+  white-space: pre-wrap;
   animation: tuldep-modal-in 0.25s var(--ease-bounce);
+}
+
+.notice-banner--error {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
 }
 
 /* =========================================================================

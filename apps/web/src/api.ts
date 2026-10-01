@@ -8,6 +8,8 @@ import type {
   DbScriptRunResult,
   DetectedEngine,
   EngineType,
+  GitInfo,
+  GitPullResult,
   ImportApplySummary,
   ImportPreviewItem,
   ImportResolution,
@@ -90,6 +92,24 @@ export async function updateProject(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
+  return res.json();
+}
+
+export async function getProjectGit(id: string): Promise<GitInfo> {
+  const res = await fetch(`${BASE_URL}/projects/${id}/git`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `git info failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function pullProject(id: string): Promise<GitPullResult> {
+  const res = await fetch(`${BASE_URL}/projects/${id}/git/pull`, { method: "POST" });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `pull failed (${res.status})`);
+  }
   return res.json();
 }
 

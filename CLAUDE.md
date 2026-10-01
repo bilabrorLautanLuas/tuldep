@@ -108,6 +108,15 @@ Didefinisikan di `packages/shared/src` sebagai Zod schema + TypeScript types.
       terinstall lokal — nvm/fnm/volta untuk Node, phpbrew/homebrew/system
       untuk PHP — atau custom path manual)
 - [x] Port label per project + quick link `http://localhost:{port}`
+- [x] Git per project: badge branch aktif (+ penanda dirty, ↑ahead ↓behind
+      terhadap upstream) dan tombol Pull (`git pull --ff-only`, tanpa
+      pre-check/confirm — git yang memutuskan, pesan error diteruskan ke UI).
+      Logic di `apps/server/src/gitService.ts`, endpoint `GET /api/projects/:id/git`
+      dan `POST /api/projects/:id/git/pull`. Info git hanya di-fetch sekali per
+      project + setelah pull/edit (tidak ikut polling 2 detik), tidak ada fetch
+      otomatis ke remote, dan tidak disimpan di DB. Spawn `git` tidak melanggar
+      konvensi #1 (itu hanya untuk psql/mongosh). Setelah pull saat project
+      running, UI kasih notice restart manual (konvensi #8).
 - [x] My IP (proxy ke `ipinfo.io/json` lewat backend, dengan cache singkat)
 - [x] UI full-width, design system ter-refine (lihat bagian Design System
       di bawah)

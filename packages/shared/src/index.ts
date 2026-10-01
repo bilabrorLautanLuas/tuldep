@@ -60,6 +60,27 @@ export const ProjectWithStatusSchema = ProjectSchema.extend({
 });
 export type ProjectWithStatus = z.infer<typeof ProjectWithStatusSchema>;
 
+// ---- Git (runtime info per project, never persisted) ----
+export const GitInfoSchema = z.object({
+  isRepo: z.boolean(),
+  branch: z.string().nullable().optional(),
+  detached: z.boolean().optional(),
+  dirty: z.boolean().optional(),
+  hasUpstream: z.boolean().optional(),
+  ahead: z.number().int().nullable().optional(),
+  behind: z.number().int().nullable().optional(),
+  error: z.string().optional(),
+});
+export type GitInfo = z.infer<typeof GitInfoSchema>;
+
+export const GitPullResultSchema = z.object({
+  success: z.boolean(),
+  output: z.string(),
+  info: GitInfoSchema,
+  notice: z.string().optional(),
+});
+export type GitPullResult = z.infer<typeof GitPullResultSchema>;
+
 // ---- DbConnection ----
 export const DbConnectionKindSchema = z.enum(["postgres", "mongodb"]);
 export type DbConnectionKind = z.infer<typeof DbConnectionKindSchema>;
