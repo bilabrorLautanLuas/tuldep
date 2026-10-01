@@ -16,6 +16,13 @@ function platformCmd(command: string): string[] {
   return process.platform === "win32" ? ["cmd", "/c", command] : ["sh", "-c", command];
 }
 
+function killWindowsTree(pid: number): void {
+  // cmd /c spawns the real command as a child of cmd.exe; a plain kill() only
+  // terminates cmd.exe and leaves the actual process (e.g. redis-server.exe)
+  // running and still holding its port. taskkill /t kills the whole tree.
+  Bun.spawnSync(["taskkill", "/pid", String(pid), "/t", "/f"]);
+}
+
 async function pumpStream(stream: ReadableStream<Uint8Array>, projectId: string): Promise<void> {
   const reader = stream.getReader();
   const decoder = new TextDecoder();
@@ -44,7 +51,10 @@ export function startProject(project: Project): ProjectStatus {
     // prepend the chosen engine's bin dir so "npm run dev" / "php artisan serve" resolve to it first
     const engineDir = dirname(project.engine.path);
     const pathSep = process.platform === "win32" ? ";" : ":";
-    env.PATH = `${engineDir}${pathSep}${process.env.PATH ?? ""}`;
+    // Windows env keys are case-insensitive and usually spelled "Path"; writing env.PATH would add a
+    // second key next to it and the child would keep resolving through the original "Path".
+    const pathKey = Object.keys(env).find((k) => k.toLowerCase() === "path") ?? "PATH";
+    env[pathKey] = `${engineDir}${pathSep}${env[pathKey] ?? ""}`;
   }
 
   const proc = Bun.spawn({
@@ -86,15 +96,21 @@ export async function stopProject(id: string): Promise<ProjectStatus> {
   }
 
   entry.stopRequested = true;
-  entry.proc.kill();
 
-  const timedOut = await Promise.race([
-    entry.proc.exited.then(() => false),
-    new Promise<boolean>((resolve) => setTimeout(() => resolve(true), 3000)),
-  ]);
-  if (timedOut) {
-    entry.proc.kill("SIGKILL");
+  if (process.platform === "win32") {
+    killWindowsTree(entry.proc.pid);
     await entry.proc.exited;
+  } else {
+    entry.proc.kill();
+
+    const timedOut = await Promise.race([
+      entry.proc.exited.then(() => false),
+      new Promise<boolean>((resolve) => setTimeout(() => resolve(true), 3000)),
+    ]);
+    if (timedOut) {
+      entry.proc.kill("SIGKILL");
+      await entry.proc.exited;
+    }
   }
 
   entry.status = "stopped";

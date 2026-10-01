@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --filter \"*\" dev"
+    "dev": "bun scripts/dev.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
