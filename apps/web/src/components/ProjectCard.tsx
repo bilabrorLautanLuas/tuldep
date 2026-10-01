@@ -1,4 +1,5 @@
 import type { ProjectWithStatus } from "@tuldep/shared";
+import { EditIcon, PlayIcon, StopIcon, TrashIcon } from "./Icons";
 
 interface ProjectCardProps {
   project: ProjectWithStatus;
@@ -42,22 +43,30 @@ export function ProjectCard({ project, onStart, onStop, onDelete, onOpenLogs, on
           </div>
         )}
       </div>
-      <div className="project-card-actions">
+      <div className="project-card-actions project-card-actions--icons">
         <button
-          className="primary"
+          className="primary icon-btn"
+          title="Start"
+          aria-label="Start project"
           disabled={project.status === "running" || starting}
           onClick={() => onStart(project.id)}
         >
-          {starting ? <span className="spinner" /> : "Start"}
+          {starting ? <span className="spinner" /> : <PlayIcon />}
         </button>
-        <button disabled={project.status !== "running"} onClick={() => onStop(project.id)}>
-          Stop
+        <button
+          className="icon-btn"
+          title="Stop"
+          aria-label="Stop project"
+          disabled={project.status !== "running"}
+          onClick={() => onStop(project.id)}
+        >
+          <StopIcon />
         </button>
-        <button onClick={() => onEdit(project.id)} title="Edit project">
-          ✎ Edit
+        <button className="icon-btn" title="Edit" aria-label="Edit project" onClick={() => onEdit(project.id)}>
+          <EditIcon />
         </button>
-        <button className="danger" onClick={() => onDelete(project.id)}>
-          Delete
+        <button className="danger icon-btn" title="Delete" aria-label="Delete project" onClick={() => onDelete(project.id)}>
+          <TrashIcon />
         </button>
       </div>
     </div>

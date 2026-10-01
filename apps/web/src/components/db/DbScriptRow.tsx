@@ -1,4 +1,5 @@
 import type { DbScript, DbScriptRunResult } from "@tuldep/shared";
+import { EditIcon, PlayIcon, TrashIcon } from "../Icons";
 
 interface DbScriptRowProps {
   script: DbScript;
@@ -34,15 +35,26 @@ export function DbScriptRow({
         <span className="project-name">{script.name}</span>
       </div>
 
-      <div className="project-card-actions">
-        <button className="primary" onClick={handleRun} disabled={running}>
-          {running ? <span className="spinner" /> : "Run"}
+      <div className="project-card-actions project-card-actions--icons">
+        <button
+          className="primary icon-btn"
+          title="Run"
+          aria-label="Run script"
+          onClick={handleRun}
+          disabled={running}
+        >
+          {running ? <span className="spinner" /> : <PlayIcon />}
         </button>
-        <button onClick={() => onEdit(script.id)} title="Edit script">
-          ✎ Edit
+        <button className="icon-btn" title="Edit" aria-label="Edit script" onClick={() => onEdit(script.id)}>
+          <EditIcon />
         </button>
-        <button className="danger" onClick={() => onDelete(script.id)}>
-          Delete
+        <button
+          className="danger icon-btn"
+          title="Delete"
+          aria-label="Delete script"
+          onClick={() => onDelete(script.id)}
+        >
+          <TrashIcon />
         </button>
       </div>
 

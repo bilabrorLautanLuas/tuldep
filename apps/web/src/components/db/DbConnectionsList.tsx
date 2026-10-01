@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { DbConnection } from "@tuldep/shared";
 import { EmptyState } from "../Mascot";
 import { EyeButton } from "../EyeButton";
+import { EditIcon, TrashIcon, ZapIcon } from "../Icons";
 
 interface DbConnectionsListProps {
   connections: DbConnection[];
@@ -47,13 +48,30 @@ export function DbConnectionsList({ connections, testResults, onTest, onEdit, on
                 {result.ok ? "OK" : (result.error ?? "failed")}
               </div>
             )}
-            <div className="project-card-actions">
-              <button onClick={() => onTest(connection.id)}>Test Connection</button>
-              <button onClick={() => onEdit(connection.id)} title="Edit connection">
-                ✎ Edit
+            <div className="project-card-actions project-card-actions--icons">
+              <button
+                className="icon-btn"
+                title="Test connection"
+                aria-label="Test connection"
+                onClick={() => onTest(connection.id)}
+              >
+                <ZapIcon />
               </button>
-              <button className="danger" onClick={() => onDelete(connection.id)}>
-                Delete
+              <button
+                className="icon-btn"
+                title="Edit"
+                aria-label="Edit connection"
+                onClick={() => onEdit(connection.id)}
+              >
+                <EditIcon />
+              </button>
+              <button
+                className="danger icon-btn"
+                title="Delete"
+                aria-label="Delete connection"
+                onClick={() => onDelete(connection.id)}
+              >
+                <TrashIcon />
               </button>
             </div>
           </div>

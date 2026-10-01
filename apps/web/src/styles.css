@@ -310,6 +310,16 @@ h3 {
   border-color: var(--danger);
 }
 
+/* Icon-only action buttons (project card). Specificity (0,2,0) beats the generic button padding. */
+.project-card-actions .icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+}
+
 /* Eye toggle for secret values. Specificity (0,2,0) deliberately beats the generic pill-button rules above. */
 .secret-row,
 .secret-input {
