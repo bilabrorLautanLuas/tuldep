@@ -117,6 +117,14 @@ Didefinisikan di `packages/shared/src` sebagai Zod schema + TypeScript types.
       otomatis ke remote, dan tidak disimpan di DB. Spawn `git` tidak melanggar
       konvensi #1 (itu hanya untuk psql/mongosh). Setelah pull saat project
       running, UI kasih notice restart manual (konvensi #8).
+      Commit terakhir di HEAD lokal (`GitInfo.commit`: hash, subject, body,
+      author, date) tidak tampil langsung di card, hanya muncul di popover
+      saat hover/focus badge branch (`GitBadge.tsx`) — body multi-line
+      ditampilkan apa adanya dan scroll kalau panjang.
+- [x] Layout card project: aksi utama icon-only Start / Stop / Logs di bawah
+      (log dibuka lewat tombol Logs, bukan klik card); aksi sekunder Edit /
+      Pull / Delete ada di menu titik tiga kanan atas (`CardMenu.tsx`,
+      reusable untuk card lain).
 - [x] My IP (proxy ke `ipinfo.io/json` lewat backend, dengan cache singkat)
 - [x] UI full-width, design system ter-refine (lihat bagian Design System
       di bawah)

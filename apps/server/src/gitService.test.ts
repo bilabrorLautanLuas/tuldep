@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { getGitInfo, parseStatus, pullProject } from "./gitService";
+import { getGitInfo, parseCommit, parseStatus, pullProject } from "./gitService";
 
 const root = mkdtempSync(join(tmpdir(), "tuldep-git-"));
 const remote = join(root, "remote.git");
@@ -53,7 +53,58 @@ describe("parseStatus", () => {
   });
 });
 
+describe("parseCommit", () => {
+  test("splits fields on unit separator, subject may contain odd characters", () => {
+    expect(parseCommit("abc1234\x1fAda\x1f2026-01-02T03:04:05+07:00\x1ffix: a | b \"c\"\x1f\n")).toEqual({
+      hash: "abc1234",
+      subject: 'fix: a | b "c"',
+      body: "",
+      author: "Ada",
+      date: "2026-01-02T03:04:05+07:00",
+    });
+  });
+
+  test("multi-line body is kept intact (blank lines included)", () => {
+    const c = parseCommit("abc1234\x1fAda\x1f2026-01-02T03:04:05+07:00\x1fsubj\x1fline1\n\nline3\n");
+    expect(c?.subject).toBe("subj");
+    expect(c?.body).toBe("line1\n\nline3");
+  });
+
+  test("empty output means no commit", () => {
+    expect(parseCommit("")).toBeNull();
+  });
+});
+
 describe("getGitInfo", () => {
+  test("latest local commit is reported, and follows new commits", async () => {
+    const first = (await getGitInfo(repoA)).commit;
+    expect(first).toMatchObject({ subject: "add one.txt", author: "t" });
+    expect(first?.hash).toBe(git(repoA, "rev-parse", "--short", "HEAD"));
+    expect(Number.isNaN(Date.parse(first!.date))).toBe(false);
+
+    commitFile(repoA, "tmp.txt", "t");
+    expect((await getGitInfo(repoA)).commit?.subject).toBe("add tmp.txt");
+    git(repoA, "reset", "--hard", "origin/main");
+  });
+
+  test("commit message with body and blank lines is split into subject and body", async () => {
+    writeFileSync(join(repoA, "msg.txt"), "m");
+    git(repoA, "add", "msg.txt");
+    git(repoA, "commit", "-m", "short subject", "-m", "first paragraph\nsecond line", "-m", "last paragraph");
+    const commit = (await getGitInfo(repoA)).commit;
+    expect(commit?.subject).toBe("short subject");
+    expect(commit?.body).toBe("first paragraph\nsecond line\n\nlast paragraph");
+    git(repoA, "reset", "--hard", "origin/main");
+  });
+
+  test("repo without commits has commit null", async () => {
+    const empty = join(root, "empty");
+    git(root, "init", "-b", "main", empty);
+    const info = await getGitInfo(empty);
+    expect(info).toMatchObject({ isRepo: true, branch: "main" });
+    expect(info.commit).toBeNull();
+  });
+
   test("non-repo folder", async () => {
     expect(await getGitInfo(root)).toEqual({ isRepo: false });
   });

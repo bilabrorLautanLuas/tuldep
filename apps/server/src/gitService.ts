@@ -1,5 +1,5 @@
 import { stat } from "node:fs/promises";
-import type { GitInfo, GitPullResult } from "@tuldep/shared";
+import type { GitCommit, GitInfo, GitPullResult } from "@tuldep/shared";
 
 const INFO_TIMEOUT_MS = 10_000;
 const PULL_TIMEOUT_MS = 60_000;
@@ -87,10 +87,30 @@ export function parseStatus(out: string): GitInfo {
   return { isRepo: true, branch, detached, dirty, hasUpstream, ahead, behind };
 }
 
+// Parses `git log -1 --format=%h%x1f%an%x1f%cI%x1f%s%x1f%b`. Unit separator between fields because messages can
+// contain anything printable; the body goes last since it's the only field that spans lines.
+export function parseCommit(out: string): GitCommit | null {
+  const [hash, author, date, subject, ...body] = out.split("\x1f");
+  if (!hash?.trim() || !date) return null;
+  return {
+    hash: hash.trim(),
+    subject: subject ?? "",
+    body: body.join("\x1f").trim(),
+    author: author ?? "",
+    date,
+  };
+}
+
+async function getHeadCommit(cwd: string): Promise<GitCommit | null> {
+  const res = await runGit(cwd, ["log", "-1", "--format=%h%x1f%an%x1f%cI%x1f%s%x1f%b"], INFO_TIMEOUT_MS);
+  // non-zero on a repo with no commits yet — that's "no commit", not an error
+  return res.code === 0 ? parseCommit(res.stdout) : null;
+}
+
 export async function getGitInfo(cwd: string): Promise<GitInfo> {
   if (!(await dirExists(cwd))) return { isRepo: false };
   const res = await runGit(cwd, ["status", "--porcelain=v2", "--branch"], INFO_TIMEOUT_MS);
-  if (res.code === 0) return parseStatus(res.stdout);
+  if (res.code === 0) return { ...parseStatus(res.stdout), commit: await getHeadCommit(cwd) };
   if (/not a git repository/i.test(res.stderr)) return { isRepo: false };
   return { isRepo: false, error: res.stderr.trim() || "git status failed" };
 }

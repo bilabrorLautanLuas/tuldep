@@ -61,8 +61,18 @@ export const ProjectWithStatusSchema = ProjectSchema.extend({
 export type ProjectWithStatus = z.infer<typeof ProjectWithStatusSchema>;
 
 // ---- Git (runtime info per project, never persisted) ----
+export const GitCommitSchema = z.object({
+  hash: z.string(),
+  subject: z.string(),
+  body: z.string(), // rest of the message after the subject line; may be multi-line, empty if none
+  author: z.string(),
+  date: z.string(), // ISO 8601 committer date
+});
+export type GitCommit = z.infer<typeof GitCommitSchema>;
+
 export const GitInfoSchema = z.object({
   isRepo: z.boolean(),
+  commit: GitCommitSchema.nullable().optional(), // HEAD of the local checkout; null on a repo with no commits
   branch: z.string().nullable().optional(),
   detached: z.boolean().optional(),
   dirty: z.boolean().optional(),
