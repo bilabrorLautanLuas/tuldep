@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { CreateDbConnectionSchema, UpdateDbConnectionSchema } from "@tuldep/shared";
+import { ClearAllRequestSchema, CreateDbConnectionSchema, UpdateDbConnectionSchema } from "@tuldep/shared";
 import * as db from "../db";
 import * as pool from "../dbConnectionPool";
 
@@ -10,6 +10,17 @@ dbConnectionsRouter.get("/", (c) => c.json(db.getDbConnections()));
 dbConnectionsRouter.post("/", async (c) => {
   const body = CreateDbConnectionSchema.parse(await c.req.json());
   return c.json(db.createDbConnection(body), 201);
+});
+
+// Clears the whole DB Scripts page: every connection, and (by cascade) every script and run history.
+dbConnectionsRouter.post("/clear", async (c) => {
+  const body = ClearAllRequestSchema.parse(await c.req.json().catch(() => ({})));
+  if (body.confirmed !== true) {
+    return c.json({ error: "confirmation required" }, 400);
+  }
+  const deleted = db.getDbConnections().length;
+  db.deleteAllDbConnections();
+  return c.json({ deleted });
 });
 
 dbConnectionsRouter.put("/:id", async (c) => {

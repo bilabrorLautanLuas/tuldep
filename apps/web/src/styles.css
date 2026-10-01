@@ -265,6 +265,7 @@ h3 {
 
 .add-project-form button:disabled,
 .project-card-actions button:disabled,
+.dashboard-toolbar button:disabled,
 .modal-body button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -295,6 +296,7 @@ h3 {
 }
 
 .project-card-actions button.danger,
+.dashboard-toolbar button.danger,
 .modal-body button.danger {
   border-color: var(--danger);
   color: var(--danger);
@@ -302,9 +304,69 @@ h3 {
 }
 
 .project-card-actions button.danger:hover:not(:disabled),
+.dashboard-toolbar button.danger:hover:not(:disabled),
 .modal-body button.danger:hover:not(:disabled) {
   background: var(--danger-bg);
   border-color: var(--danger);
+}
+
+/* Eye toggle for secret values. Specificity (0,2,0) deliberately beats the generic pill-button rules above. */
+.secret-row,
+.secret-input {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.secret-row .project-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.secret-input {
+  position: relative;
+  flex: 1;
+  min-width: 160px;
+}
+
+.secret-input input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.secret-input .eye-button {
+  position: absolute;
+  right: 4px;
+}
+
+.secret-row .eye-button,
+.secret-input .eye-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  box-shadow: none;
+  transform: none;
+}
+
+.secret-row .eye-button:hover,
+.secret-input .eye-button:hover {
+  background: var(--border);
+  color: var(--text);
+  transform: none;
+}
+
+.secret-row .eye-button:active,
+.secret-input .eye-button:active {
+  transform: none;
+  box-shadow: none;
 }
 
 /* Nav tabs live inside the pill tray: flat until active */

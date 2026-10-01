@@ -120,6 +120,10 @@ export type DbScriptRunResult = z.infer<typeof DbScriptRunResultSchema>;
 export const RunDbScriptRequestSchema = z.object({ confirmed: z.boolean().optional() });
 export type RunDbScriptRequest = z.infer<typeof RunDbScriptRequestSchema>;
 
+// Bulk "clear all" endpoints share the same confirm guard as running a script.
+export const ClearAllRequestSchema = z.object({ confirmed: z.boolean().optional() });
+export type ClearAllRequest = z.infer<typeof ClearAllRequestSchema>;
+
 // ---- Project auto-discovery ----
 export const ProjectDetectedTypeSchema = z.enum(["node", "bun", "laravel", "unknown"]);
 export type ProjectDetectedType = z.infer<typeof ProjectDetectedTypeSchema>;

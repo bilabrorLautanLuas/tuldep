@@ -153,6 +153,10 @@ export function deleteProject(id: string): void {
   db.query("DELETE FROM projects WHERE id = ?").run(id);
 }
 
+export function deleteAllProjects(): void {
+  db.query("DELETE FROM projects").run();
+}
+
 export function updateProject(id: string, patch: UpdateProjectInput): Project | null {
   const existing = getProject(id);
   if (!existing) return null;
@@ -194,6 +198,11 @@ export function createDbConnection(input: CreateDbConnectionInput): DbConnection
 
 export function deleteDbConnection(id: string): void {
   db.query("DELETE FROM db_connections WHERE id = ?").run(id);
+}
+
+/** Scripts and their run history go too, via ON DELETE CASCADE. */
+export function deleteAllDbConnections(): void {
+  db.query("DELETE FROM db_connections").run();
 }
 
 export function updateDbConnection(id: string, patch: UpdateDbConnectionInput): DbConnection | null {

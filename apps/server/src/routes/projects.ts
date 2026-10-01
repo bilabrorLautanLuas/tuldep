@@ -1,5 +1,10 @@
 import { Hono } from "hono";
-import { CreateProjectSchema, ImportProjectsRequestSchema, UpdateProjectSchema } from "@tuldep/shared";
+import {
+  ClearAllRequestSchema,
+  CreateProjectSchema,
+  ImportProjectsRequestSchema,
+  UpdateProjectSchema,
+} from "@tuldep/shared";
 import * as db from "../db";
 import * as pm from "../processManager";
 import * as logStore from "../logStore";
@@ -28,6 +33,19 @@ projectsRouter.post("/import", async (c) => {
   const body = ImportProjectsRequestSchema.parse(await c.req.json());
   const imported = db.importProjects(body.suggestions);
   return c.json(imported, 201);
+});
+
+projectsRouter.post("/clear", async (c) => {
+  const body = ClearAllRequestSchema.parse(await c.req.json().catch(() => ({})));
+  if (body.confirmed !== true) {
+    return c.json({ error: "confirmation required" }, 400);
+  }
+  const projects = db.getProjects();
+  // stop first so no orphan process keeps running (and holding its port) without a project row
+  await Promise.all(projects.map((p) => pm.stopProject(p.id)));
+  db.deleteAllProjects();
+  await Promise.all(projects.map((p) => logStore.clearProjectLog(p.id)));
+  return c.json({ deleted: projects.length });
 });
 
 projectsRouter.put("/:id", async (c) => {

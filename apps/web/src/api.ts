@@ -44,6 +44,15 @@ export async function deleteProject(id: string): Promise<void> {
   await fetch(`${BASE_URL}/projects/${id}`, { method: "DELETE" });
 }
 
+export async function clearAllProjects(): Promise<{ deleted: number }> {
+  const res = await fetch(`${BASE_URL}/projects/clear`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ confirmed: true }),
+  });
+  return res.json();
+}
+
 export async function startProject(id: string): Promise<{ status: ProjectStatus }> {
   const res = await fetch(`${BASE_URL}/projects/${id}/start`, { method: "POST" });
   return res.json();
@@ -165,6 +174,16 @@ export async function updateDbConnection(id: string, input: UpdateDbConnectionIn
 
 export async function deleteDbConnection(id: string): Promise<void> {
   await fetch(`${BASE_URL}/db-connections/${id}`, { method: "DELETE" });
+}
+
+/** Deletes every connection plus (by cascade) all scripts and run history. */
+export async function clearAllDbData(): Promise<{ deleted: number }> {
+  const res = await fetch(`${BASE_URL}/db-connections/clear`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ confirmed: true }),
+  });
+  return res.json();
 }
 
 export async function testDbConnection(id: string): Promise<{ ok: boolean; error?: string }> {

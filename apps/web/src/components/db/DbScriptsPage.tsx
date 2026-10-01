@@ -20,6 +20,7 @@ export function DbScriptsPage() {
   const [runningIds, setRunningIds] = useState<Set<string>>(new Set());
   const [exportOpen, setExportOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const refreshHistoryFor = useCallback(async (scriptList: DbScript[]) => {
     const entries = await Promise.all(
@@ -70,6 +71,24 @@ export function DbScriptsPage() {
     refresh();
   }
 
+  async function handleClearAll() {
+    const confirmed = window.confirm(
+      `Hapus SEMUA data di halaman ini (${connections.length} connection, ${scripts.length} script, beserta history run-nya)? Tindakan ini tidak bisa dibatalkan.`,
+    );
+    if (!confirmed) return;
+    setClearing(true);
+    try {
+      await api.clearAllDbData();
+      setTestResults({});
+      setLastResults({});
+      setEditingConnectionId(null);
+      setEditingScriptId(null);
+    } finally {
+      setClearing(false);
+      refresh();
+    }
+  }
+
   const editingConnection = connections.find((c) => c.id === editingConnectionId) ?? null;
   const editingScript = scripts.find((s) => s.id === editingScriptId) ?? null;
 
@@ -78,6 +97,9 @@ export function DbScriptsPage() {
       <div className="dashboard-toolbar">
         <button onClick={() => setExportOpen(true)}>Export Config</button>
         <button onClick={() => setImportOpen(true)}>Import Config</button>
+        <button className="danger" disabled={connections.length === 0 || clearing} onClick={handleClearAll}>
+          {clearing ? <span className="spinner" /> : "🗑 Clear Data"}
+        </button>
       </div>
 
       <ConnectionForm

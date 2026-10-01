@@ -15,6 +15,7 @@ export function Dashboard() {
   const [discoverOpen, setDiscoverOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [startingIds, setStartingIds] = useState<Set<string>>(new Set());
+  const [clearing, setClearing] = useState(false);
 
   const refresh = useCallback(async () => {
     setProjects(await api.listProjects());
@@ -57,6 +58,22 @@ export function Dashboard() {
     refresh();
   }
 
+  async function handleClearAll() {
+    const confirmed = window.confirm(
+      `Hapus SEMUA project (${projects.length})? Project yang sedang berjalan akan dihentikan. Tindakan ini tidak bisa dibatalkan.`,
+    );
+    if (!confirmed) return;
+    setClearing(true);
+    try {
+      await api.clearAllProjects();
+      setSelectedProjectId(null);
+      setEditingProjectId(null);
+    } finally {
+      setClearing(false);
+      refresh();
+    }
+  }
+
   const selectedProject = projects.find((p) => p.id === selectedProjectId) ?? null;
   const editingProject = projects.find((p) => p.id === editingProjectId) ?? null;
 
@@ -66,6 +83,9 @@ export function Dashboard() {
 
       <div className="dashboard-toolbar">
         <button onClick={() => setDiscoverOpen(true)}>Auto-discover</button>
+        <button className="danger" disabled={projects.length === 0 || clearing} onClick={handleClearAll}>
+          {clearing ? <span className="spinner" /> : "🗑 Clear Data"}
+        </button>
       </div>
 
       <ProjectForm
