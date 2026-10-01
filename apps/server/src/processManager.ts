@@ -48,7 +48,7 @@ export function startProject(project: Project): ProjectStatus {
 
   const env: Record<string, string | undefined> = { ...process.env, ...project.env };
   if (project.engine) {
-    // prepend the chosen engine's bin dir so "npm run dev" / "php artisan serve" resolve to it first
+    // prepend the chosen engine's bin dir so "yarn run dev" / "php artisan serve" resolve to it first
     const engineDir = dirname(project.engine.path);
     const pathSep = process.platform === "win32" ? ";" : ":";
     // Windows env keys are case-insensitive and usually spelled "Path"; writing env.PATH would add a

@@ -27,7 +27,7 @@ async function detectProject(dir: string, name: string): Promise<ProjectSuggesti
 
     const isBun = (await fileExists(join(dir, "bun.lockb"))) || (await fileExists(join(dir, "bun.lock")));
     const detectedType: ProjectDetectedType = isBun ? "bun" : "node";
-    const runner = isBun ? "bun run" : "npm run";
+    const runner = isBun ? "bun run" : "yarn run";
     const suggestedCommand = scripts.dev ? `${runner} dev` : scripts.start ? `${runner} start` : `${runner} dev`;
 
     return { path: dir, name, detectedType, suggestedCommand, env: {} };
@@ -78,7 +78,7 @@ export async function getAvailableScripts(cwd: string): Promise<AvailableScripts
   }
 
   const isBun = (await fileExists(join(cwd, "bun.lockb"))) || (await fileExists(join(cwd, "bun.lock")));
-  const packageManager: PackageManager = isBun ? "bun" : "npm";
+  const packageManager: PackageManager = isBun ? "bun" : "yarn";
 
   const scripts = Object.entries(rawScripts).map(([name, command]) => ({ name, command: String(command) }));
   if (scripts.length === 0) {

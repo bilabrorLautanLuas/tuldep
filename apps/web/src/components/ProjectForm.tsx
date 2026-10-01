@@ -94,7 +94,7 @@ export function ProjectForm({ mode, initialProject, onSubmit, onCancel }: Projec
         setScriptsMessage(result.message);
 
         if (result.scripts.length > 0) {
-          const prefix = result.packageManager === "bun" ? "bun run" : "npm run";
+          const prefix = result.packageManager === "bun" ? "bun run" : "yarn run";
           const match = result.scripts.find((s) => `${prefix} ${s.name}` === command);
           setSelectedScript(match ? match.name : CUSTOM);
         } else {
@@ -115,7 +115,7 @@ export function ProjectForm({ mode, initialProject, onSubmit, onCancel }: Projec
   }, [cwd]);
 
   function selectScript(script: AvailableScript) {
-    const prefix = packageManager === "bun" ? "bun run" : "npm run";
+    const prefix = packageManager === "bun" ? "bun run" : "yarn run";
     setSelectedScript(script.name);
     setCommand(`${prefix} ${script.name}`);
   }
